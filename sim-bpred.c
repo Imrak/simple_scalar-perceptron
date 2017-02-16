@@ -146,7 +146,7 @@ sim_reg_options(struct opt_odb_t *odb)
 	       /* print */TRUE, /* format */NULL);
 
   opt_reg_string(odb, "-bpred",
-		 "branch predictor type {nottaken|taken|bimod|2lev|comb}",
+		 "branch predictor type {nottaken|taken|bimod|2lev|comb|perceptron}",
                  &pred_type, /* default */"bimod",
                  /* print */TRUE, /* format */NULL);
 
@@ -162,6 +162,13 @@ sim_reg_options(struct opt_odb_t *odb)
                    twolev_config, twolev_nelt, &twolev_nelt,
 		   /* default */twolev_config,
                    /* print */TRUE, /* format */NULL, /* !accrue */FALSE);
+
+  /* Just testing if the command line arguments will. Still initializing 2lev */
+  opt_reg_int_list(odb, "-bpred:perceptron",
+		   "Perceptron predictor config (<ADD ALL CLAs HERE>)",
+		   twolev_config, twolev_nelt, &twolev_nelt,
+		   /* default */ twolev_config,
+		   /* print */TRUE, /* format */ NULL, /* !accrue */ FALSE);
 
   opt_reg_int_list(odb, "-bpred:comb",
 		   "combining predictor config (<meta_table_size>)",
@@ -214,6 +221,23 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* btb assoc */btb_config[1],
 			  /* ret-addr stack size */ras_size);
     }
+  else if(!mystricmp(pred_type, "perceptron")) {
+      if (twolev_nelt != 4)
+	fatal("bad perceptron pred config");
+      if (btb_nelt != 2)
+	fatal("bad btb config (<num_set> <associativity>)");
+
+      pred = bpred_create(BPred2Level,
+			  0,
+			  twolev_config[0],
+			  twolev_config[1],
+			  0,
+			  twolev_config[2],
+			  twolev_config[3],
+			  btb_config[0],
+			  btb_config[1],
+			  ras_size);
+  }
   else if (!mystricmp(pred_type, "2lev"))
     {
       /* 2-level adaptive predictor, bpred_create() checks args */
