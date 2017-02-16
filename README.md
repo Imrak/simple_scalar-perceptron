@@ -1,1 +1,3 @@
-# simple_scalar-perceptron
+# simple_scalar-perceptro
+
+Perceptron branch prediction simulation using perceptron.
