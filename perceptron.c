@@ -297,7 +297,7 @@ void Remove_Perceptron( Percep_List *percep_list, Perceptron *target_percep ){
 	Perceptron *percep_pointer = NULL;
 	
 	//We'll use a boolean type variable to tell us if we found the target or not.
-	bool found = 0;
+	char found = 0;
 	
 	//We'll start at the top of the list:
 	percep_pointer = percep_list->msp;
@@ -473,14 +473,14 @@ int Sum_Weight( Perceptron *percep ){
 //
 //----------------------------------------------------------------------------//
 /*
-	bool Decision(
+	char Decision(
 		int threshold,
 		int sum,
 		bool actual
 	);
 */
-bool Decision( int threshold, int sum, bool actual, Perceptron *percep ){
-	bool decision = 0;
+char Decision( int threshold, int sum, Perceptron *percep ){
+	char decision = 0;
 	
 	//First we check if the sum we got from our Sum_Weight function is less than
 		//the threshold value. If it is, decision maintains its' value of 0.
@@ -489,19 +489,6 @@ bool Decision( int threshold, int sum, bool actual, Perceptron *percep ){
 	
 	else
 		decision = 1;
-	
-	//Then we'll check to see if the decision matches with the actual decision
-		//of the test file. If it does, decision will be set to 1. 
-		//If it doesn't, decision will be set to 0.
-	if( decision == actual ){
-		decision = 1;
-		percep->percep_data->hit_count++;
-	}
-	
-	else{
-		decision = 0;
-		percep->percep_data->miss_count++;
-	}
 	
 	//Then we'll return the decision:
 	return decision;
@@ -517,7 +504,7 @@ bool Decision( int threshold, int sum, bool actual, Perceptron *percep ){
 		Perceptron *percep
 	);
 */
-void Perceptron_Training( bool decision, bool actual, Perceptron *percep ){
+void Perceptron_Training( char decision, char actual, Perceptron *percep ){
 	//First we must check to see if the decision was a 1 or a 0.
 		//A 1 means that the Perceptron predicted correctly. 
 		//A 0 means the Perceptron predicted incorrectly.
@@ -642,9 +629,9 @@ void Test_From_File( unsigned char depth, unsigned short int list, signed char m
 		//The while loop we shall use grabs 1 character at a time. As such we'll use
 			//fgetc(testfile). Since the file should only contain 1 or 0, we'll
 			//use a boolean variable to hold their values.
-	bool test_value = 0;
+	char test_value = 0;
 	
-	int prediction = 0;
+	char prediction = 0;
 	
 		//To check for the end of the file we'll use an integer to ensure all works well.
 	int check_value;
@@ -912,9 +899,9 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 			//The while loop we shall use grabs 1 character at a time. As such we'll use
 				//fgetc(testfile). Since the file should only contain 1 or 0, we'll
 				//use a boolean variable to hold their values.
-		bool test_value = 0;
+		char test_value = 0;
 		
-		bool prediction = 0;
+		char prediction = 0;
 		
 			//To check for the end of the file we'll use an integer to ensure all works well.
 		int check_value;
@@ -999,4 +986,27 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 	
 	
 	
+}
+//-----------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------------------------------//
+/*
+	Hash Perceptron
+*/
+
+
+struct Perceptron *Hash_Percep( int address, PList *list ){
+	int location = addredd % list->size;
+	
+	int count = 0;
+	
+	Perceptron *percep_pointer = list->msp;
+	
+	while(percep_pointer != NULL && count != location){
+		percep_pointer = percep_pointer->next_percep;
+		count++;
+	}
+	
+	return percep_pointer;
 }

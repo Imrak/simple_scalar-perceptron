@@ -79,11 +79,11 @@ struct bpred_t *bpred_create(
 	unsigned int xor,  				/* history xor address flag */
 	unsigned int btb_sets,			/* number of sets in BTB */ 
 	unsigned int btb_assoc,			/* BTB associativity */
-	unsigned int depth,			/* Depth of Weight and Shift Registers*/
-	unsigned int list,			/* Size of the number of Perceptrons in the Perceptorn list*/
-	unsigned int max_weight,	/* Max weight*/
-	int min_weight,				/* Min weight: Should equal -1 * max_weight */
-	unsigned int threshold,		/* threshold for Perceptron's prediction */
+	unsigned char depth,			/* Depth of Weight and Shift Registers*/
+	unsigned short int list,			/* Size of the number of Perceptrons in the Perceptorn list*/
+	signed char max_weight,		/* Max weight*/
+	signed char min_weight,				/* Min weight: Should equal -1 * max_weight */
+	signed char threshold,		/* threshold for Perceptron's prediction */
 	unsigned int retstack_size 	/* num entries in ret-addr stack */
 ){
 	struct bpred_t *pred;
@@ -117,7 +117,7 @@ struct bpred_t *bpred_create(
 			break;
 		
 		case BPredPerc:
-			pList = (Percep_List*)malloc(sizeof(Percep_List));
+			//pList = (Percep_List*)malloc(sizeof(Percep_List));
 			pList = Per_List_init(depth);
 			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
 			int i = 0;
@@ -316,6 +316,7 @@ FILE *stream)			/* output stream */
 				pred_dir->config.two.xor ? "" : "no", pred_dir->config.two.l2size);
     			break;
 		case BPredPerc:
+			fprintf(stream, "pred_dir: %s: perceptron predictor\n", name)
 			break;
   		case BPred2bit:
     			fprintf(stream, "pred_dir: %s: 2-bit: %d entries, direct-mapped\n",
@@ -356,6 +357,8 @@ FILE *stream			/* output stream */
 			fprintf(stream, "ret_stack: %d entries", pred->retstack.size);
 			break;
 		case BPredPerc:
+			bpred_dir_config (pred->dirpred.bimod, "perceptron", stream);
+			//fprintf(stream, "perceptron");
 			break;	
 		case BPred2bit:
 			bpred_dir_config (pred->dirpred.bimod, "bimod", stream);
@@ -725,7 +728,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 			}
 			break;
 		case BPredPerc:
-			dir_update_ptr->pdir1 = (char *)Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
+			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
 							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),
 							1, /* Just a place holder, should be actual prediction direction */
 							pred->dirpred.perceptron->config.perceptron_list.msp);

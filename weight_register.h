@@ -165,7 +165,7 @@ void Weight_Delete_Weight(
 		This function is designed to be run before the end of the program itself
 		to ensure all allocated memory is returned.
 */
-void Delete_Weight_Regisiter(
+void Delete_Weight_Register(
 	Weight_Register *weight_reg
 );
 

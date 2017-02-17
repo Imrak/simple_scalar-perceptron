@@ -28,7 +28,7 @@
 */
 
 typedef struct Bit{
-	bool bit_value;
+	char bit_value;
 	
 	struct Bit *next_bit;
 	

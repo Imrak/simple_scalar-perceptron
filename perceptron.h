@@ -336,10 +336,9 @@ int Sum_Weight(
 				Conversely, if the perceptron predicts incorrectly, we'll increase
 				the Perceptron's miss counter.
 */
-bool Decision(
+char Decision(
 	int threshold,
 	int sum,
-	bool actual,
 	Perceptron *percep
 );
 
@@ -371,8 +370,8 @@ bool Decision(
 		corresponding Weight's weight_value will be [ DECREASED ] by the Perceptron's train_value.
 */
 void Perceptron_Training(
-	bool decision,
-	bool actual,
+	char decision,
+	char actual,
 	Perceptron *percep
 );
 
@@ -495,6 +494,21 @@ void Daisy_Chain(
 	signed char threshold,
 	char *in_file,
 	char *out_file
+);
+
+//-----------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------------------------------//
+/*
+	Hash Perceptron:
+		The Hash Perceptron function takes in an interger representation of the
+		branching address and return the Perceptron within the Perceptron List
+		to that location's perceptron.
+*/
+struct Perceptron *Hash_Percep( 
+int address, 
+PList *list
 );
 
 #endif //PERCEPTRON_H
