@@ -92,6 +92,11 @@ static int twolev_nelt = 4;
 static int twolev_config[4] =
   { /* l1size */1, /* l2size */1024, /* hist */8, /* xor */FALSE};
 
+/* Percpetron predictor config (<depth> <list> <max_weight> <min_weight> <threhsold>)  */
+static int perceptron_nelt = 5;
+static int perceptron_config[5] = 
+  { /*depth*/ 8, /*list*/ 1, /*max_weight*/ 127, /*min_weight*/ -127, /* threshold */ 0};
+
 /* combining predictor config (<meta_table_size> */
 static int comb_nelt = 1;
 static int comb_config[1] =
@@ -192,15 +197,33 @@ sim_reg_options(struct opt_odb_t *odb)
 void
 sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 {
+  	//enum bpred_class class,	/* type of predictor to create */
+	//unsigned int bimod_size,	/* bimod table size */
+	//unsigned int l1size,	/* level-1 table size */
+	//unsigned int l2size,	/* level-2 table size */	 
+	//unsigned int meta_size,	/* meta predictor table size */
+	//unsigned int shift_width,	/* history register width */
+	//unsigned int xor,		/* history xor address flag */
+	///unsigned int btb_sets,	/* number of sets in BTB */ 
+	//unsigned int btb_assoc,	/* BTB associativity */
+	//unsigned int depth,	/* Width of the shift register(and num weights) */
+	//unsigned int list, 	/* size of the number of perceptrons in the perceptron list */
+	//unsigned int max_weight,	/* maximum weight */
+	//int min_weight, 		/* minimum weight  */
+	//unsigned int threshold,	/* threshold */
+	//unsigned int retstack_size);/* num entries in ret-addr stack */
+
+
+
   if (!mystricmp(pred_type, "taken"))
     {
       /* static predictor, not taken */
-      pred = bpred_create(BPredTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      pred = bpred_create(BPredTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
   else if (!mystricmp(pred_type, "nottaken"))
     {
       /* static predictor, taken */
-      pred = bpred_create(BPredNotTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      pred = bpred_create(BPredNotTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
   else if (!mystricmp(pred_type, "bimod"))
     {
@@ -219,26 +242,37 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */0,
 			  /* btb sets */btb_config[0],
 			  /* btb assoc */btb_config[1],
+			  /* depth */perceptron[0],
+			  /* list */perceptron[1],
+			  /* max_weight */perceptron[2],
+			  /* min_weight */perceptron[3],
+			  /* threshold */perceptron[4],
 			  /* ret-addr stack size */ras_size);
     }
   else if(!mystricmp(pred_type, "perceptron")) {
-      if (twolev_nelt != 4)
+      if (perceptron_nelt != 5)
 	fatal("bad perceptron pred config");
       if (btb_nelt != 2)
 	fatal("bad btb config (<num_set> <associativity>)");
 
-      pred = bpred_create(BPred2Level,
-			  0,
-			  twolev_config[0],
-			  twolev_config[1],
-			  0,
-			  twolev_config[2],
-			  twolev_config[3],
-			  btb_config[0],
-			  btb_config[1],
-			  ras_size);
+      pred = bpred_create(BPred2Perc,
+			  /* bimod table size */0,
+			  /* 2lev l1 size */twolev_config[0],
+			  /* 2lev l2 size */twolev_config[1],
+			  /* meta table size */0,
+			  /* history reg size */twolev_config[2],
+			  /* history xor address */twolev_config[3],
+			  /* btb sets*/btb_config[0],
+			  /* btb assoc*/btb_config[1],
+			  /* depth */perceptron[0],
+			  /* list */perceptron[1],
+			  /* max_weight */perceptron[2],
+			  /* min_weight */perceptron[3],
+			  /* threshold */perceptron[4]
+			  /*RAS size */ras_size);
   }
   else if (!mystricmp(pred_type, "2lev"))
+
     {
       /* 2-level adaptive predictor, bpred_create() checks args */
       if (twolev_nelt != 4)
@@ -255,9 +289,15 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */twolev_config[3],
 			  /* btb sets */btb_config[0],
 			  /* btb assoc */btb_config[1],
+			  /* depth */perceptron[0],
+			  /* list */perceptron[1],
+			  /* max_weight */perceptron[2],
+			  /* min_weight */perceptron[3],
+			  /* threshold */perceptron[4],
 			  /* ret-addr stack size */ras_size);
     }
   else if (!mystricmp(pred_type, "comb"))
+
     {
       /* combining predictor, bpred_create() checks args */
       if (twolev_nelt != 4)
@@ -278,6 +318,11 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */twolev_config[3],
 			  /* btb sets */btb_config[0],
 			  /* btb assoc */btb_config[1],
+			  /* depth */perceptron[0],
+			  /* list */perceptron[1],
+			  /* max_weight */perceptron[2],
+			  /* min_weight */perceptron[3],
+			  /* threshold */perceptron[4],
 			  /* ret-addr stack size */ras_size);
     }
   else

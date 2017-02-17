@@ -198,6 +198,11 @@ bpred_create(enum bpred_class class,	/* type of predictor to create */
 	     unsigned int xor,		/* history xor address flag */
 	     unsigned int btb_sets,	/* number of sets in BTB */ 
 	     unsigned int btb_assoc,	/* BTB associativity */
+	     unsigned int depth,	/* Width of the shift register(and num weights) */
+	     unsigned int list, 	/* size of the number of perceptrons in the perceptron list */
+	     unsigned int max_weight,	/* maximum weight */
+	     int min_weight, 		/* minimum weight  */
+	     unsigned int threshold,	/* threshold */
 	     unsigned int retstack_size);/* num entries in ret-addr stack */
 
 /* create a branch direction predictor */
