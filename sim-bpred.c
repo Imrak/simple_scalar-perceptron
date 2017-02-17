@@ -170,9 +170,9 @@ sim_reg_options(struct opt_odb_t *odb)
 
   /* Just testing if the command line arguments will. Still initializing 2lev */
   opt_reg_int_list(odb, "-bpred:perceptron",
-		   "Perceptron predictor config (<ADD ALL CLAs HERE>)",
-		   twolev_config, twolev_nelt, &twolev_nelt,
-		   /* default */ twolev_config,
+		   "Perceptron predictor config (<depth> <list> <max_weight> <min_weight> <threshold>)",
+		   perceptron_config, perceptron_nelt, &perceptron_nelt,
+		   /* default */ perceptron_config,
 		   /* print */TRUE, /* format */ NULL, /* !accrue */ FALSE);
 
   opt_reg_int_list(odb, "-bpred:comb",
@@ -197,24 +197,6 @@ sim_reg_options(struct opt_odb_t *odb)
 void
 sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 {
-  	//enum bpred_class class,	/* type of predictor to create */
-	//unsigned int bimod_size,	/* bimod table size */
-	//unsigned int l1size,	/* level-1 table size */
-	//unsigned int l2size,	/* level-2 table size */	 
-	//unsigned int meta_size,	/* meta predictor table size */
-	//unsigned int shift_width,	/* history register width */
-	//unsigned int xor,		/* history xor address flag */
-	///unsigned int btb_sets,	/* number of sets in BTB */ 
-	//unsigned int btb_assoc,	/* BTB associativity */
-	//unsigned int depth,	/* Width of the shift register(and num weights) */
-	//unsigned int list, 	/* size of the number of perceptrons in the perceptron list */
-	//unsigned int max_weight,	/* maximum weight */
-	//int min_weight, 		/* minimum weight  */
-	//unsigned int threshold,	/* threshold */
-	//unsigned int retstack_size);/* num entries in ret-addr stack */
-
-
-
   if (!mystricmp(pred_type, "taken"))
     {
       /* static predictor, not taken */
@@ -242,11 +224,11 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */0,
 			  /* btb sets */btb_config[0],
 			  /* btb assoc */btb_config[1],
-			  /* depth */perceptron[0],
-			  /* list */perceptron[1],
-			  /* max_weight */perceptron[2],
-			  /* min_weight */perceptron[3],
-			  /* threshold */perceptron[4],
+			  /* depth */perceptron_config[0],
+			  /* list */perceptron_config[1],
+			  /* max_weight */perceptron_config[2],
+			  /* min_weight */perceptron_config[3],
+			  /* threshold */perceptron_config[4],
 			  /* ret-addr stack size */ras_size);
     }
   else if(!mystricmp(pred_type, "perceptron")) {
@@ -255,7 +237,7 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
       if (btb_nelt != 2)
 	fatal("bad btb config (<num_set> <associativity>)");
 
-      pred = bpred_create(BPred2Perc,
+      pred = bpred_create(BPredPerc,
 			  /* bimod table size */0,
 			  /* 2lev l1 size */twolev_config[0],
 			  /* 2lev l2 size */twolev_config[1],
@@ -264,11 +246,11 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */twolev_config[3],
 			  /* btb sets*/btb_config[0],
 			  /* btb assoc*/btb_config[1],
-			  /* depth */perceptron[0],
-			  /* list */perceptron[1],
-			  /* max_weight */perceptron[2],
-			  /* min_weight */perceptron[3],
-			  /* threshold */perceptron[4]
+			  /* depth */perceptron_config[0],
+			  /* list */perceptron_config[1],
+			  /* max_weight */perceptron_config[2],
+			  /* min_weight */perceptron_config[3],
+			  /* threshold */perceptron_config[4],
 			  /*RAS size */ras_size);
   }
   else if (!mystricmp(pred_type, "2lev"))
@@ -289,11 +271,11 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */twolev_config[3],
 			  /* btb sets */btb_config[0],
 			  /* btb assoc */btb_config[1],
-			  /* depth */perceptron[0],
-			  /* list */perceptron[1],
-			  /* max_weight */perceptron[2],
-			  /* min_weight */perceptron[3],
-			  /* threshold */perceptron[4],
+			  /* depth */perceptron_config[0],
+			  /* list */perceptron_config[1],
+			  /* max_weight */perceptron_config[2],
+			  /* min_weight */perceptron_config[3],
+			  /* threshold */perceptron_config[4],
 			  /* ret-addr stack size */ras_size);
     }
   else if (!mystricmp(pred_type, "comb"))
@@ -318,11 +300,11 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* history xor address */twolev_config[3],
 			  /* btb sets */btb_config[0],
 			  /* btb assoc */btb_config[1],
-			  /* depth */perceptron[0],
-			  /* list */perceptron[1],
-			  /* max_weight */perceptron[2],
-			  /* min_weight */perceptron[3],
-			  /* threshold */perceptron[4],
+			  /* depth */perceptron_config[0],
+			  /* list */perceptron_config[1],
+			  /* max_weight */perceptron_config[2],
+			  /* min_weight */perceptron_config[3],
+			  /* threshold */perceptron_config[4],
 			  /* ret-addr stack size */ras_size);
     }
   else

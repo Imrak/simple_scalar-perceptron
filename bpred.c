@@ -64,16 +64,22 @@
 
 /* create a branch predictor */
 struct bpred_t *			/* branch predictory instance */
-bpred_create(enum bpred_class class,	/* type of predictor to create */
+bpred_create(enum bpred_class class,
 	     unsigned int bimod_size,	/* bimod table size */
-	     unsigned int l1size,	/* 2lev l1 table size */
-	     unsigned int l2size,	/* 2lev l2 table size */
-	     unsigned int meta_size,	/* meta table size */
+	     unsigned int l1size,	/* level-1 table size */
+	     unsigned int l2size,	/* level-2 table size */
+	     unsigned int meta_size,	/* meta predictor table size */
 	     unsigned int shift_width,	/* history register width */
-	     unsigned int xor,  	/* history xor address flag */
+	     unsigned int xor,		/* history xor address flag */
 	     unsigned int btb_sets,	/* number of sets in BTB */ 
 	     unsigned int btb_assoc,	/* BTB associativity */
-	     unsigned int retstack_size) /* num entries in ret-addr stack */
+	     unsigned int depth,	/* Width of the shift register(and num weights) */
+	     unsigned int list, 	/* size of the number of perceptrons in the perceptron list */
+	     unsigned int max_weight,	/* maximum weight */
+	     int min_weight, 		/* minimum weight  */
+	     unsigned int threshold,	/* threshold */
+	     unsigned int retstack_size)/* num entries in ret-addr stack */
+
 {
   struct bpred_t *pred;
 
@@ -103,7 +109,11 @@ bpred_create(enum bpred_class class,	/* type of predictor to create */
       bpred_dir_create(class, l1size, l2size, shift_width, xor);
 
     break;
-
+  case BPredPerc: 
+    pred->dirpred.twolev = 
+      bpred_dir_create(BPred2Level, l1size, l2size, shift_width, xor);
+    /*ADD CREATING OF PERCEPTRON HERE AND TAKE OUT THE 2LEV CREATION*/
+    break;
   case BPred2bit:
     pred->dirpred.bimod = 
       bpred_dir_create(class, bimod_size, 0, 0, 0);
@@ -121,6 +131,7 @@ bpred_create(enum bpred_class class,	/* type of predictor to create */
   switch (class) {
   case BPredComb:
   case BPred2Level:
+  case BPredPerc:
   case BPred2bit:
     {
       int i;
@@ -197,6 +208,7 @@ bpred_dir_create (
   cnt = -1;
   switch (class) {
   case BPred2Level:
+  case BPredPerc:
     {
       if (!l1size || (l1size & (l1size-1)) != 0)
 	fatal("level-1 size, `%d', must be non-zero and a power of two", 
@@ -272,6 +284,7 @@ bpred_dir_config(
 {
   switch (pred_dir->class) {
   case BPred2Level:
+  case BPredPerc:
     fprintf(stream,
       "pred_dir: %s: 2-lvl: %d l1-sz, %d bits/ent, %s xor, %d l2-sz, direct-mapped\n",
       name, pred_dir->config.two.l1size, pred_dir->config.two.shift_width,
