@@ -869,7 +869,7 @@ void Test_File(char* in_file, char* out_file, int depth, int reg_size, signed ch
 		
 		actual_result = check_value - 48;
 		
-		prediction = Decision( table->threshold, Sum_Weight(loc_pointer->percep), actual_result, loc_pointer->percep);
+		prediction = Decision( table->threshold, Sum_Weight(loc_pointer->percep), loc_pointer->percep);
 		
 		Perceptron_Training(prediction, actual_result, loc_pointer->percep);
 		
