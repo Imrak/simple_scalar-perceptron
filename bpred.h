@@ -218,14 +218,14 @@ struct bpred_t *bpred_create(
 	unsigned int l2size,		/* level-2 table size */
 	unsigned int meta_size,		/* meta predictor table size */
 	unsigned int shift_width,	/* history register width */
-	unsigned int xor,			/* history xor address flag */
+	unsigned int xor,		/* history xor address flag */
 	unsigned int btb_sets,		/* number of sets in BTB */ 
 	unsigned int btb_assoc,		/* BTB associativity */
-	unsigned int depth,			/* Depth of Weight and Shift Registers*/
-	unsigned int list,			/* Size of the number of Perceptrons in the Perceptorn list*/
-	unsigned int max_weight,	/* Max weight*/
-	int min_weight,				/* Min weight: Should equal -1 * max_weight */
-	unsigned int threshold,		/* threshold for Perceptron's prediction */
+	unsigned char depth,		/* Depth of Weight and Shift Registers*/
+	unsigned short int list,	/* Size of the number of Perceptrons in the Perceptorn list*/
+	signed char max_weight,		/* Max weight*/
+	signed char min_weight,		/* Min weight: Should equal -1 * max_weight */
+	signed char threshold,		/* threshold for Perceptron's prediction */
 	unsigned int retstack_size 	/* num entries in ret-addr stack */
 );
 

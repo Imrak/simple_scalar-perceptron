@@ -479,11 +479,11 @@ int Sum_Weight( Perceptron *percep ){
 		bool actual
 	);
 */
-char Decision( int threshold, int sum, Perceptron *percep ){
-	char decision = 0;
+char *Decision( int threshold, int sum, Perceptron *percep ){
+	char *decision = (char *)malloc(sizeof(char));
 	
 	//First we check if the sum we got from our Sum_Weight function is less than
-		//the threshold value. If it is, decision maintains its' value of 0.
+	//the threshold value. If it is, decision maintains its' value of 0.
 	if(sum < threshold)
 		decision = 0;
 	
@@ -654,7 +654,7 @@ void Test_From_File( unsigned char depth, unsigned short int list, signed char m
 			//Then we want the Decision.
 			//Then we want the Training.
 			//Which means, we call the functions in reverse order:
-		prediction = Decision(threshold, Sum_Weight(pList->msp), test_value, pList->msp);
+		prediction = Decision(threshold, Sum_Weight(pList->msp), pList->msp);
 		Perceptron_Training(prediction,test_value,pList->msp);
 		
 		//After the Training has run, its time to update our Perceptron's Shift Register.
@@ -784,7 +784,7 @@ void Test_From_Array( int *array_pointer, int array_size, unsigned char depth, u
 	
 	for(i = 0; i < array_size; i++){
 		
-		prediction = Decision(threshold, Sum_Weight( pList->msp ), *(array_pointer + i), pList->msp );
+		prediction = Decision(threshold, Sum_Weight( pList->msp ), pList->msp );
 		
 		Perceptron_Training( prediction, *(array_pointer + i), pList->msp );
 		
@@ -921,7 +921,7 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 			
 			//We'll calculate the first prediction outside the other perceptron's loops:
 			if(percep_pointer != NULL){
-				prediction = Decision(threshold, Sum_Weight(percep_pointer), test_value, percep_pointer);
+				prediction = Decision(threshold, Sum_Weight(percep_pointer), percep_pointer);
 				percep_pointer = percep_pointer->next_percep;
 			}
 			
@@ -937,7 +937,7 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 				
 				Shift_Add_Bit( percep_pointer->shift_reg, new_bit );
 				
-				prediction = Decision(threshold, Sum_Weight(percep_pointer), prediction, percep_pointer);
+				prediction = Decision(threshold, Sum_Weight(percep_pointer), percep_pointer);
 				
 				percep_pointer = percep_pointer->next_percep;
 			}
@@ -996,8 +996,8 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 */
 
 
-struct Perceptron *Hash_Percep( int address, PList *list ){
-	int location = addredd % list->size;
+struct Perceptron *Hash_Percep( int address, Percep_List *list ){
+	int location = address % list->size;
 	
 	int count = 0;
 	

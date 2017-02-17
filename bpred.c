@@ -316,7 +316,7 @@ FILE *stream)			/* output stream */
 				pred_dir->config.two.xor ? "" : "no", pred_dir->config.two.l2size);
     			break;
 		case BPredPerc:
-			fprintf(stream, "pred_dir: %s: perceptron predictor\n", name)
+			fprintf(stream, "pred_dir: %s: perceptron predictor\n", name);
 			break;
   		case BPred2bit:
     			fprintf(stream, "pred_dir: %s: 2-bit: %d entries, direct-mapped\n",
@@ -729,8 +729,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 			break;
 		case BPredPerc:
 			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
-							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),
-							1, /* Just a place holder, should be actual prediction direction */
+							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),	
 							pred->dirpred.perceptron->config.perceptron_list.msp);
 			break;	
 		case BPred2bit:

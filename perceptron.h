@@ -336,7 +336,7 @@ int Sum_Weight(
 				Conversely, if the perceptron predicts incorrectly, we'll increase
 				the Perceptron's miss counter.
 */
-char Decision(
+char *Decision(
 	int threshold,
 	int sum,
 	Perceptron *percep
@@ -508,7 +508,7 @@ void Daisy_Chain(
 */
 struct Perceptron *Hash_Percep( 
 int address, 
-PList *list
+Percep_List *list
 );
 
 #endif //PERCEPTRON_H
