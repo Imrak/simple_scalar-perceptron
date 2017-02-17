@@ -201,7 +201,7 @@ struct Perceptron *Perceptron_Init(
 		Perceptron List Init returns a pointer to a fully initialized Perceptron
 		List. 
 */
-struct Percep_List *Per_List_Init( 
+struct Percep_List *Per_List_init( 
 	int depth 
 );
 

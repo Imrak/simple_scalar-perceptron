@@ -281,7 +281,7 @@ SRCS =	main.c sim-fast.c sim-safe.c sim-cache.c sim-profile.c \
 	sim-eio.c sim-bpred.c sim-cheetah.c sim-outorder.c \
 	memory.c regs.c cache.c bpred.c ptrace.c eventq.c \
 	resource.c endian.c dlite.c symbol.c eval.c options.c range.c \
-	eio.c stats.c endian.c misc.c weight_register.c shift_register.c  \
+	eio.c stats.c endian.c misc.c weight_register.c shift_register.c \
 	perceptron.c history_buffer.c \
 	target-pisa/pisa.c target-pisa/loader.c target-pisa/syscall.c \
 	target-pisa/symbol.c \
@@ -290,7 +290,7 @@ SRCS =	main.c sim-fast.c sim-safe.c sim-cache.c sim-profile.c \
 
 HDRS =	syscall.h memory.h regs.h sim.h loader.h cache.h bpred.h ptrace.h \
 	eventq.h resource.h endian.h dlite.h symbol.h eval.h bitmap.h \
-	eio.h range.h version.h endian.h misc.h weight_register.h shift_register.h \ 
+	eio.h range.h version.h endian.h misc.h weight_register.h shift_register.h \
 	perceptron.h history_buffer.h \
 	target-pisa/pisa.h target-pisa/pisabig.h target-pisa/pisalittle.h \
 	target-pisa/pisa.def target-pisa/ecoff.h \
@@ -503,7 +503,7 @@ regs.$(OEXT): options.h stats.h eval.h
 cache.$(OEXT): host.h misc.h machine.h machine.def cache.h memory.h options.h
 cache.$(OEXT): stats.h eval.h
 bpred.$(OEXT): host.h misc.h machine.h machine.def bpred.h stats.h eval.h perceptron.h
-ptrace.$(OEXT): host.h misc.h machine.h machine.def range.h ptrace.h 
+ptrace.$(OEXT): host.h misc.h machine.h machine.def range.h ptrace.h
 eventq.$(OEXT): host.h misc.h machine.h machine.def eventq.h bitmap.h
 resource.$(OEXT): host.h misc.h resource.h
 endian.$(OEXT): endian.h loader.h host.h misc.h machine.h machine.def regs.h
@@ -543,4 +543,4 @@ syscall.$(OEXT): syscall.h
 symbol.$(OEXT): host.h misc.h loader.h machine.h machine.def regs.h memory.h
 symbol.$(OEXT): options.h stats.h eval.h symbol.h target-alpha/ecoff.h
 symbol.$(OEXT): target-alpha/alpha.h
-perceprton.$(OEXT): weight_register.h shift_register.h perceptron.h history_buffer.h 
+perceprton.$(OEXT): weight_register.h shift_register.h perceptron.h history_buffer.h

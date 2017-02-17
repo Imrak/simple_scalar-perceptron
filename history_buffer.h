@@ -108,7 +108,7 @@ typedef struct Branch_History_List{
 			3) Useage
 */
 typedef enum Replacement_Type{
-	Random, 
+	Random_repl, // HAD TO CHANGE THIS. Was throwing errors. 
 	oldest,
 	useage
 }Replacement_Type;

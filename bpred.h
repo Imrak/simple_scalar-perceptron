@@ -60,7 +60,11 @@
 #include "misc.h"
 #include "machine.h"
 #include "stats.h"
+#include "weight_register.h"
+#include "shift_register.h"
 #include "perceptron.h"
+#include "history_buffer.h"
+
 
 /*
 * This module implements a number of branch predictor mechanisms.  The
@@ -139,6 +143,8 @@ struct bpred_dir_t {
 			int *shiftregs;		/* level-1 history table */
 			unsigned char *l2table;	/* level-2 prediction state table */
 		} two;
+
+		struct Percep_List perceptron_list;
 		
 	} config;
 };
@@ -152,6 +158,7 @@ struct bpred_t {
 		struct bpred_dir_t *bimod;	  /* first direction predictor */
 		struct bpred_dir_t *twolev;	  /* second direction predictor */
 		struct bpred_dir_t *meta;	  /* meta predictor */
+		struct bpred_dir_t *perceptron;   /* perceptron predictor */
 	} dirpred;
 
 	struct {
@@ -214,7 +221,7 @@ struct bpred_t *bpred_create(
 	unsigned int xor,			/* history xor address flag */
 	unsigned int btb_sets,		/* number of sets in BTB */ 
 	unsigned int btb_assoc,		/* BTB associativity */
-	unisgned int depth,			/* Depth of Weight and Shift Registers*/
+	unsigned int depth,			/* Depth of Weight and Shift Registers*/
 	unsigned int list,			/* Size of the number of Perceptrons in the Perceptorn list*/
 	unsigned int max_weight,	/* Max weight*/
 	int min_weight,				/* Min weight: Should equal -1 * max_weight */

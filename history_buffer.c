@@ -349,7 +349,7 @@ void Replace_History( BHList *list, BHL *new_location, Replacement_Type replace 
 		
 	//Next, we'll use a switch statement to determine which replacement
 		//method to utilize:
-	if(replace == Random){
+	if(replace == Random_repl){
 			//In this case we'll need to use both a random number, and a 
 			//location pointer to traverse the list, and a counter
 			//to count up to the specified random number amount:
