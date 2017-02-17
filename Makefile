@@ -281,7 +281,8 @@ SRCS =	main.c sim-fast.c sim-safe.c sim-cache.c sim-profile.c \
 	sim-eio.c sim-bpred.c sim-cheetah.c sim-outorder.c \
 	memory.c regs.c cache.c bpred.c ptrace.c eventq.c \
 	resource.c endian.c dlite.c symbol.c eval.c options.c range.c \
-	eio.c stats.c endian.c misc.c \
+	eio.c stats.c endian.c misc.c weight_register.c shift_register.c  \
+	perceptron.c history_buffer.c \
 	target-pisa/pisa.c target-pisa/loader.c target-pisa/syscall.c \
 	target-pisa/symbol.c \
 	target-alpha/alpha.c target-alpha/loader.c target-alpha/syscall.c \
@@ -289,7 +290,8 @@ SRCS =	main.c sim-fast.c sim-safe.c sim-cache.c sim-profile.c \
 
 HDRS =	syscall.h memory.h regs.h sim.h loader.h cache.h bpred.h ptrace.h \
 	eventq.h resource.h endian.h dlite.h symbol.h eval.h bitmap.h \
-	eio.h range.h version.h endian.h misc.h \
+	eio.h range.h version.h endian.h misc.h weight_register.h shift_register.h \ 
+	perceptron.h history_buffer.h \
 	target-pisa/pisa.h target-pisa/pisabig.h target-pisa/pisalittle.h \
 	target-pisa/pisa.def target-pisa/ecoff.h \
 	target-alpha/alpha.h target-alpha/alpha.def target-alpha/ecoff.h
@@ -300,7 +302,8 @@ HDRS =	syscall.h memory.h regs.h sim.h loader.h cache.h bpred.h ptrace.h \
 OBJS =	main.$(OEXT) syscall.$(OEXT) memory.$(OEXT) regs.$(OEXT) \
 	loader.$(OEXT) endian.$(OEXT) dlite.$(OEXT) symbol.$(OEXT) \
 	eval.$(OEXT) options.$(OEXT) stats.$(OEXT) eio.$(OEXT) \
-	range.$(OEXT) misc.$(OEXT) machine.$(OEXT)
+	range.$(OEXT) misc.$(OEXT) machine.$(OEXT) weight_register.$(OEXT) \
+	shift_register.$(OEXT) perceptron.$(OEXT) history_buffer.$(OEXT)
 
 #
 # programs to build
@@ -499,8 +502,8 @@ regs.$(OEXT): host.h misc.h machine.h machine.def loader.h regs.h memory.h
 regs.$(OEXT): options.h stats.h eval.h
 cache.$(OEXT): host.h misc.h machine.h machine.def cache.h memory.h options.h
 cache.$(OEXT): stats.h eval.h
-bpred.$(OEXT): host.h misc.h machine.h machine.def bpred.h stats.h eval.h
-ptrace.$(OEXT): host.h misc.h machine.h machine.def range.h ptrace.h
+bpred.$(OEXT): host.h misc.h machine.h machine.def bpred.h stats.h eval.h perceptron.h
+ptrace.$(OEXT): host.h misc.h machine.h machine.def range.h ptrace.h 
 eventq.$(OEXT): host.h misc.h machine.h machine.def eventq.h bitmap.h
 resource.$(OEXT): host.h misc.h resource.h
 endian.$(OEXT): endian.h loader.h host.h misc.h machine.h machine.def regs.h
@@ -529,7 +532,7 @@ syscall.$(OEXT): host.h misc.h machine.h machine.def regs.h memory.h
 syscall.$(OEXT): options.h stats.h eval.h loader.h sim.h endian.h eio.h
 syscall.$(OEXT): syscall.h
 symbol.$(OEXT): host.h misc.h target-pisa/ecoff.h loader.h machine.h
-symbol.$(OEXT): machine.def regs.h memory.h options.h stats.h eval.h symbol.h
+symbol.$0(OEXT): machine.def regs.h memory.h options.h stats.h eval.h symbol.h
 alpha.$(OEXT): host.h misc.h machine.h machine.def eval.h regs.h
 loader.$(OEXT): host.h misc.h machine.h machine.def endian.h regs.h memory.h
 loader.$(OEXT): options.h stats.h eval.h sim.h eio.h loader.h
@@ -540,3 +543,4 @@ syscall.$(OEXT): syscall.h
 symbol.$(OEXT): host.h misc.h loader.h machine.h machine.def regs.h memory.h
 symbol.$(OEXT): options.h stats.h eval.h symbol.h target-alpha/ecoff.h
 symbol.$(OEXT): target-alpha/alpha.h
+perceprton.$(OEXT): weight_register.h shift_register.h perceptron.h history_buffer.h 
