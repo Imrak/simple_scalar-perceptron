@@ -119,15 +119,14 @@ struct bpred_t *bpred_create(
 		case BPredPerc:
 			pList = (Percep_List*)malloc(sizeof(Percep_List));
 			pList = Per_List_init(depth);
-			
+			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
 			int i = 0;
 			for(i = 0; i < list; i++) {
 				Perceptron *perceptron = NULL;
 				perceptron = Perceptron_Init(depth, max_weight, min_weight, threshold, list);
 				Percep_Add_Percep(pList, perceptron);
 			}
-
-			pred->dirpred.perceptron->config.perceptron_list = *pList;		
+			pred->dirpred.perceptron->config.perceptron_list = *pList;			
 			break;
 		
 		case BPred2bit:

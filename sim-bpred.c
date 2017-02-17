@@ -236,7 +236,7 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 	fatal("bad perceptron pred config");
       if (btb_nelt != 2)
 	fatal("bad btb config (<num_set> <associativity>)");
-
+      
       pred = bpred_create(BPredPerc,
 			  /* bimod table size */0,
 			  /* 2lev l1 size */twolev_config[0],
@@ -252,7 +252,7 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* min_weight */perceptron_config[3],
 			  /* threshold */perceptron_config[4],
 			  /*RAS size */ras_size);
-  }
+    }
   else if (!mystricmp(pred_type, "2lev"))
 
     {
@@ -567,7 +567,7 @@ sim_main(void)
 	  sim_num_branches++;
 
 	  if (pred)
-	    {
+	    {	
 	      /* get the next predicted fetch address */
 	      pred_PC = bpred_lookup(pred,
 				     /* branch addr */regs.regs_PC,
@@ -577,14 +577,14 @@ sim_main(void)
 				     /* return? */MD_IS_RETURN(op),
 				     /* stash an update ptr */&update_rec,
 				     /* stash return stack ptr */&stack_idx);
-
+	      //panic("Was able to get the predicted address");
 	      /* valid address returned from branch predictor? */
 	      if (!pred_PC)
 		{
 		  /* no predicted taken target, attempt not taken target */
 		  pred_PC = regs.regs_PC + sizeof(md_inst_t);
 		}
-
+	      //panic("About to make an update");
 	      bpred_update(pred,
 			   /* branch addr */regs.regs_PC,
 			   /* resolved branch target */regs.regs_NPC,
