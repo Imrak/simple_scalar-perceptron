@@ -565,7 +565,7 @@ sim_main(void)
 	  struct bpred_update_t update_rec;
 
 	  sim_num_branches++;
-
+	  printf("BEFORE ANY PREDICTION STUFF\n");
 	  if (pred)
 	    {	
 	      /* get the next predicted fetch address */
@@ -597,6 +597,10 @@ sim_main(void)
 			   /* predictor update pointer */&update_rec);
 	    }
 	}
+<<<<<<< HEAD
+=======
+		printf("GOT THROUGH FIRST ITERATION");
+>>>>>>> 168b9827ae309c6298f697a5cf7829ae6a8e5f88
       /* check for DLite debugger entry condition */
       if (dlite_check_break(regs.regs_NPC,
 			    is_write ? ACCESS_WRITE : ACCESS_READ,
