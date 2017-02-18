@@ -431,7 +431,7 @@ struct stat_sdb_t *sdb	/* stats database */
 			panic("bogus branch predictor class");
 	}
 	
-	if(pred->class != BPredPerc){
+	if(1){
 	
 		sprintf(buf, "%s.lookups", name);
 		
@@ -881,8 +881,9 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 	
 	/* don't change bpred state for non-branch instructions or if this
 	* is a stateless predictor*/
-	if (!(MD_OP_FLAGS(op) & F_CTRL))
+	if (!(MD_OP_FLAGS(op) & F_CTRL)){
 		return;
+	}
 	
 	/* Have a branch here */
 	
@@ -1073,6 +1074,8 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 		new_bit->bit_value = taken;
 		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.msp->shift_reg, new_bit);		
 	
+	}else{
+		printf("!!!OCCURS!!!");
 	}
 	
 	/* combining predictor also updates second predictor and meta predictor */

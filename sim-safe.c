@@ -72,6 +72,8 @@
  * errors, and the implementation is crafted for clarity rather than speed.
  */
 
+static counter_t sim_num_loads = 0;
+
 /* simulated registers */
 static struct regs_t regs;
 
@@ -126,7 +128,14 @@ sim_reg_stats(struct stat_sdb_t *sdb)
   stat_reg_formula(sdb, "sim_inst_rate",
 		   "simulation speed (in insts/sec)",
 		   "sim_num_insn / sim_elapsed_time", NULL);
+  stat_reg_counter(sdb, "sim_num_loads",
+           "total number of load instructions",
+           &sim_num_loads, sim_num_loads, NULL);
+  stat_reg_formula(sdb, "sim_load_ratio",
+           "load instruction fractio",
+           "sim_num_loads/sim_num_insn",NULL);
   ld_reg_stats(sdb);
+
   mem_reg_stats(mem, sdb);
 }
 
@@ -319,6 +328,10 @@ sim_main(void)
 	default:
 	  panic("attempted to execute a bogus opcode");
       }
+
+    if((MD_OP_FLAGS(op) & F_MEM)&&(MD_OP_FLAGS(op) & F_LOAD)){
+        sim_num_loads++;
+    }
 
       if (fault != md_fault_none)
 	fatal("fault (%d) detected @ 0x%08p", fault, regs.regs_PC);
