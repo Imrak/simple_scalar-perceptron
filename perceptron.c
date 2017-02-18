@@ -188,9 +188,15 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 			if(new_weight->weight_value > 0)
 				new_weight->weight_value *= -1;
 		}
+
+		if(new_weight->weight_value < min_weight){
+			new_weight->weight_value = min_weight;
+		}
+
+		if(new_weight->weight_value > max_weight){
+			new_weight->weight_value = max_weight;
+		}
 		
-		printf("%d:%d\n", i,new_weight->weight_value);
-			
 		//Now that the bit and weight are set. We'll add them to their respective Registers:
 		Shift_Add_Bit( percep->shift_reg, new_bit);
 		Weight_Add_Weight( percep->weight_reg, new_weight);
@@ -214,6 +220,8 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 	);
 */
 struct Percep_List *Per_List_init( int depth ){
+	srand(time(NULL));
+
 	Percep_List *pList = NULL;
 	
 	pList = (Percep_List*)malloc(sizeof(Percep_List));
@@ -436,7 +444,7 @@ void Delete_Perceptron( Percep_List *percep_list ){
 */
 int Sum_Weight( Perceptron *percep ){
 	//We'll use a loaded summation program with a weight bias of +1 at all times.
-	int sum = 1;
+	int sum = 0;
 	
 	//To sum the weight's of the Perceptron we must look at the Bit that corresponds to
 		//each Weight. If the Bit is a 0 then we will subtract the weight_value.
@@ -450,9 +458,11 @@ int Sum_Weight( Perceptron *percep ){
 	//The code is designed so that the Shift and Weight registers maintain the same size.
 		//As such we can continue a while loop until both pointers reach the ends
 		//of their respective lists.
+	
 	while(bit_pointer != NULL && weight_pointer != NULL){
 		//First, if the bit_pointer's bit_value == 0, we'll subtract the
 			//weight_value from the sum.
+		//printf("%d ",weight_pointer->weight_value);
 		if(bit_pointer->bit_value == 0)
 			sum -= weight_pointer->weight_value;
 		
@@ -464,8 +474,7 @@ int Sum_Weight( Perceptron *percep ){
 		
 		weight_pointer = weight_pointer->next_weight;
 	}
-
-	printf("sum: %d\n", sum);
+	printf("\n");
 	
 	//Once we've finished looping and summing, we'll return the sum.
 	
@@ -484,6 +493,7 @@ int Sum_Weight( Perceptron *percep ){
 	);
 */
 char *Decision( int threshold, int sum, Perceptron *percep ){
+	//printf("Decision\n");
 	char *decision = (char *)malloc(sizeof(char));
 	
 	//First we check if the sum we got from our Sum_Weight function is less than
@@ -492,11 +502,9 @@ char *Decision( int threshold, int sum, Perceptron *percep ){
 		*decision = 0;
 	
 	else
-		*decision = 1;
+		*decision = 2;
 	
 	//Then we'll return the decision:
-
-	printf("decision:%d\n",(int)*decision);
 	return decision;
 }
 
@@ -515,26 +523,16 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep ){
 		//A 1 means that the Perceptron predicted correctly. 
 		//A 0 means the Perceptron predicted incorrectly.
 	
-	printf("actual:%d\n", (int)actual);
-	printf("correct:%d\n", (int)decision);
 	//If the Perceptron predicted correctly, then we need not train.
-	if(decision){
-		int count = 0;
-                Bit *bit_pointer = percep->shift_reg->msb;
-                Weight *weight_pointer = percep->weight_reg->msw;
-
-		while(bit_pointer != NULL && weight_pointer != NULL){
-                        printf("%d:%d\n", count, weight_pointer->weight_value);
-
-                        count++;
-
-                        bit_pointer = bit_pointer->next_bit;
-                        weight_pointer = weight_pointer->next_weight;
-                }
-
+	printf("%d\n",(int)decision);
+	printf("%d a", (int)actual);
+	if(decision == actual){
+		//printf("RAWRR!!!");	
 		return;
+	}
+		
 	//If the Perceptron did not predict correctly, it must train.
-	}else{
+	else{
 		//We'll increment the perceptron's train counter by +1.
 		percep->percep_data->train_count += 1;
 		
@@ -548,28 +546,23 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep ){
 			//weight value by the train_value within the Perceptron.
 			//If the bit_value does not match, then we'll [ decrease ] the corresponding
 			//weight value by the train_value within the Perceptron.
-		int count = 0;
 		while(bit_pointer != NULL && weight_pointer != NULL){
-			if(bit_pointer->bit_value)
-				weight_pointer->weight_value += percep->percep_data->train_value;	
+			if(bit_pointer->bit_value == actual)
+				weight_pointer->weight_value += percep->percep_data->train_value;
+			
 			else
 				weight_pointer->weight_value -= percep->percep_data->train_value;
-				
-			if(weight_pointer->weight_value < percep->percep_data->min_weight){
+
+			if(weight_pointer->weight_value < percep->percep_data->min_weight)
 				weight_pointer->weight_value = percep->percep_data->min_weight;
-			}
 
-                        if(weight_pointer->weight_value > percep->percep_data->max_weight){
-                                weight_pointer->weight_value = percep->percep_data->max_weight;
-                        }
-
-			printf("%d:%d\n", count, weight_pointer->weight_value);
-
-			count++;
-	
+			if(weight_pointer->weight_value > percep->percep_data->max_weight)
+				weight_pointer->weight_value = percep->percep_data->max_weight;
+				
 			bit_pointer = bit_pointer->next_bit;
 			weight_pointer = weight_pointer->next_weight;
 		}
+		printf("\n%d\n\n",percep->percep_data->train_count);
 	}
 }
 
@@ -680,7 +673,7 @@ void Test_From_File( unsigned char depth, unsigned short int list, signed char m
 			//Since our Sum, Decision, and Training functions are all self-sufficienct and capable
 			//or outputting exactly what we need for the next function, we'll just send these functions
 			//directly into the other functions as part of their parameters.
-	
+		
 			//The most important thing is to get the depth correctly.
 			//First we want the Summation.
 			//Then we want the Decision.

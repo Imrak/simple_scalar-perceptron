@@ -118,6 +118,7 @@ struct bpred_t *bpred_create(
 		
 		case BPredPerc:
 			//pList = (Percep_List*)malloc(sizeof(Percep_List));
+			//printf("RAWRR!!!");
 			pList = Per_List_init(depth);
 			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
 			int i = 0;
@@ -149,6 +150,7 @@ struct bpred_t *bpred_create(
 		case BPredPerc:
 		case BPred2bit:
 		{
+			//printf("allocate ret-addr stack");
 			int i;
 			
 			/* allocate BTB */
@@ -212,6 +214,7 @@ unsigned int l2size,	 	/* level-2 table size (if relevant) */
 unsigned int shift_width,	/* history register width */
 unsigned int xor			/* history xor address flag */
 ){
+	//printf("Direction Creation RAWRR!!!");
 	struct bpred_dir_t *pred_dir;
 	unsigned int cnt;
 	int flipflop;
@@ -290,6 +293,8 @@ unsigned int xor			/* history xor address flag */
 		break;
 		
 		case BPredPerc:
+			//printf("BPredPerc Direction Creation");
+			break;
 		case BPredTaken:
 		case BPredNotTaken:
 		/* no other state */
@@ -316,6 +321,7 @@ FILE *stream)			/* output stream */
 				pred_dir->config.two.xor ? "" : "no", pred_dir->config.two.l2size);
     			break;
 		case BPredPerc:
+			//printf("PERCEPTRON CONFIGURATION RAWRR!!!");
 			fprintf(stream, "pred_dir: %s: perceptron predictor\n", name);
 			break;
   		case BPred2bit:
@@ -357,6 +363,7 @@ FILE *stream			/* output stream */
 			fprintf(stream, "ret_stack: %d entries", pred->retstack.size);
 			break;
 		case BPredPerc:
+			printf("Bpred Config");
 			bpred_dir_config (pred->dirpred.bimod, "perceptron", stream);
 			//fprintf(stream, "perceptron");
 			break;	
@@ -393,6 +400,7 @@ FILE *stream			/* output stream */
 	if(pred->class == BPredPerc){
 		Write_Output( NULL );
 	}
+		//printf("Print Predictor Stats");
 }
 
 /* register branch predictor stats */
@@ -413,6 +421,7 @@ struct stat_sdb_t *sdb	/* stats database */
 			name = "bpred_2lev";
 			break;
 		case BPredPerc:
+			//printf("Register Branch Predictor Stats");
 			name = "bpred_perceptron";
 			break;			
 		case BPred2bit:
@@ -431,7 +440,7 @@ struct stat_sdb_t *sdb	/* stats database */
 			panic("bogus branch predictor class");
 	}
 	
-	if(1){
+	if(/*pred->class != BPredPerc*/1){
 	
 		sprintf(buf, "%s.lookups", name);
 		
@@ -567,9 +576,13 @@ struct stat_sdb_t *sdb	/* stats database */
 		"RAS prediction rate (i.e., RAS hits/used RAS)",
 		buf1, "%9.4f");
 	}
+	else{
+		
+	}
 }
 
 void bpred_after_priming(struct bpred_t *bpred){
+	//printf("Bpred After Priming RAWRR!!!");
 	if (bpred == NULL)
 	return;
 	
@@ -598,6 +611,7 @@ char *bpred_dir_lookup(
 	struct bpred_dir_t *pred_dir,	/* branch dir predictor inst */
 	md_addr_t baddr					/* branch address */
 ){
+	//printf("Prediction Direction Lookup.");
 	unsigned char *p = NULL;
 	
 	/* Except for jumps, get a pointer to direction-prediction bits */
@@ -677,6 +691,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 )	
 /* used on mispredict recovery */
 {
+	//printf("Mispredict Recovery");
 	struct bpred_btb_ent_t *pbtb = NULL;
 	int index, i;
 	
@@ -728,9 +743,12 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 			}
 			break;
 		case BPredPerc:
+			if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
+			//printf("Perceptron Reconfiguration");
 			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
 							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),	
 							pred->dirpred.perceptron->config.perceptron_list.msp);
+			}
 			break;	
 		case BPred2bit:
 			if ((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND))
@@ -830,6 +848,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 	{
 	/* BTB miss -- just return a predicted direction */
 		return ((*(dir_update_ptr->pdir1) >= 2)	? /* taken */ 1: /* not taken */ 0);
+		//return 1;
 	}
 	else
 	{
@@ -873,6 +892,19 @@ int correct,							/* was earlier addr prediction ok? */
 enum md_opcode op,						/* opcode of instruction */
 struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 ){
+	if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
+	if(dir_update_ptr->pdir1 && pred->class == BPredPerc)
+	{
+	
+		Perceptron_Training((!!pred_taken == !!taken), taken, pred->dirpred.perceptron->config.perceptron_list.msp);
+		Bit *new_bit = NULL;
+		new_bit = (Bit*)malloc(sizeof(Bit));
+		new_bit->bit_value = taken;
+		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.msp->shift_reg, new_bit);		
+	
+	}}
+
+	//printf("BPRED UPDATE RAWRR!!!");
 	struct bpred_btb_ent_t *pbtb = NULL;
 	
 	struct bpred_btb_ent_t *lruhead = NULL, *lruitem = NULL;
@@ -881,9 +913,8 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 	
 	/* don't change bpred state for non-branch instructions or if this
 	* is a stateless predictor*/
-	if (!(MD_OP_FLAGS(op) & F_CTRL)){
+	if (!(MD_OP_FLAGS(op) & F_CTRL))
 		return;
-	}
 	
 	/* Have a branch here */
 	
@@ -1065,7 +1096,7 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 			}
 		}
 	}
-	else if(dir_update_ptr->pdir1 && pred->class == BPredPerc)
+	/*else if(dir_update_ptr->pdir1 && pred->class == BPredPerc)
 	{
 	
 		Perceptron_Training(correct, taken, pred->dirpred.perceptron->config.perceptron_list.msp);
@@ -1074,9 +1105,7 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 		new_bit->bit_value = taken;
 		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.msp->shift_reg, new_bit);		
 	
-	}else{
-		printf("!!!OCCURS!!!");
-	}
+	}*/
 	
 	/* combining predictor also updates second predictor and meta predictor */
 	/* second direction predictor */
