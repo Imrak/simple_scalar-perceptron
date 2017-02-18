@@ -431,7 +431,7 @@ struct stat_sdb_t *sdb	/* stats database */
 			panic("bogus branch predictor class");
 	}
 	
-	if(pred->class != BPredPerc){
+	if(1){
 	
 		sprintf(buf, "%s.lookups", name);
 		

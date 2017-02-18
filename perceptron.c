@@ -485,10 +485,10 @@ char *Decision( int threshold, int sum, Perceptron *percep ){
 	//First we check if the sum we got from our Sum_Weight function is less than
 	//the threshold value. If it is, decision maintains its' value of 0.
 	if(sum < threshold)
-		decision = 0;
+		*decision = 0;
 	
 	else
-		decision = 1;
+		*decision = 1;
 	
 	//Then we'll return the decision:
 	return decision;
