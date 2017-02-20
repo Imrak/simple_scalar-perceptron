@@ -110,7 +110,7 @@ static int ruu_branch_penalty;
 /* speed of front-end of machine relative to execution core */
 static int fetch_speed;
 
-/* branch predictor type {nottaken|taken|perfect|bimod|2lev} */
+/* branch predictor type {nottaken|taken|perfect|bimod|2lev|perceptron} */
 static char *pred_type;
 
 /* bimodal predictor config (<table_size>) */
@@ -122,6 +122,11 @@ static int bimod_config[1] =
 static int twolev_nelt = 4;
 static int twolev_config[4] =
   { /* l1size */1, /* l2size */1024, /* hist */8, /* xor */FALSE};
+
+/* Perceptron Configuration (<depth> <list> <max_weight> <min_weight> <threshold>) */
+static int perceptron_nelt = 5;
+static int perceptron_config[5] =
+{ /*depth*/8, /*list*/1, /*max_weight*/ 127, /*min_weight*/ -127, /*threshold*/ 0};
 
 /* combining predictor config (<meta_table_size> */
 static int comb_nelt = 1;
@@ -667,6 +672,13 @@ sim_reg_options(struct opt_odb_t *odb)
 		   /* default */twolev_config,
                    /* print */TRUE, /* format */NULL, /* !accrue */FALSE);
 
+  opt_reg_int_list(odb, "-bpred:perceptron",
+			"perceptron predictor config "
+			"(<depth> <list> <max_weight> <min_weight> <threshold>)",
+			perceptron_config, perceptron_nelt, &perceptron_nelt,
+			/*default*/perceptron_config,
+			/*print*/TRUE, /*format*/NULL, /* !accrue */FALSE);
+
   opt_reg_int_list(odb, "-bpred:comb",
 		   "combining predictor config (<meta_table_size>)",
 		   comb_config, comb_nelt, &comb_nelt,
@@ -959,6 +971,27 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
 			  /* threshold */0,
 			  /* ret-addr stack size */ras_size);
     }
+  else if(!mystricmp(pred_type, "perceptron"))
+   {
+	if(perceptron_nelt!=5)
+		fatal("bad perceptron pred config (<depth> <list> <max_weight> <min_weight> <threshold>)");
+
+	pred = bpred_create(BPredPerc,
+			  /* bimod table size */0,
+			  /* 2lev l1 size */twolev_config[0],
+			  /* 2lev l2 size */twolev_config[1],
+			  /* meta table size */0,
+			  /* history reg size */twolev_config[2],
+			  /* history xor address */twolev_config[3],
+			  /* btb sets */btb_config[0],
+			  /* btb assoc */btb_config[1],
+			  /* depth */perceptron_config[0], // perceptron stuff, not implemented in sim-outorder
+			  /* list */perceptron_config[1],
+			  /* max_weight */perceptron_config[2],
+			  /* min_weight */perceptron_config[3],
+			  /* threshold */perceptron_config[4],
+			  /* ret-addr stack size */ras_size);
+  }
   else if (!mystricmp(pred_type, "comb"))
     {
       /* combining predictor, bpred_create() checks args */

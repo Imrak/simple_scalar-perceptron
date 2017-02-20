@@ -115,7 +115,7 @@ struct bpred_t *bpred_create(
 			bpred_dir_create(class, l1size, l2size, shift_width, xor);
 			
 			break;
-		
+		case BPredPerc_D:
 		case BPredPerc:
 			//pList = (Percep_List*)malloc(sizeof(Percep_List));
 			//printf("RAWRR!!!");
@@ -147,6 +147,7 @@ struct bpred_t *bpred_create(
 	switch (class) {
 		case BPredComb:
 		case BPred2Level:
+		case BPredPerc_D:
 		case BPredPerc:
 		case BPred2bit:
 		{
@@ -291,7 +292,7 @@ unsigned int xor			/* history xor address flag */
 			}
 		
 		break;
-		
+		case BPredPerc_D:
 		case BPredPerc:
 			//printf("BPredPerc Direction Creation");
 			break;
@@ -320,6 +321,8 @@ FILE *stream)			/* output stream */
 				name, pred_dir->config.two.l1size, pred_dir->config.two.shift_width,
 				pred_dir->config.two.xor ? "" : "no", pred_dir->config.two.l2size);
     			break;
+		case BPredPerc_D:
+			fprintf(stream,"pred_dir: %s: daisy chain perceptron predictor\n",name);
 		case BPredPerc:
 			//printf("PERCEPTRON CONFIGURATION RAWRR!!!");
 			fprintf(stream, "pred_dir: %s: perceptron predictor\n", name);
@@ -362,8 +365,11 @@ FILE *stream			/* output stream */
 			pred->btb.sets, pred->btb.assoc);
 			fprintf(stream, "ret_stack: %d entries", pred->retstack.size);
 			break;
+		case BPredPerc_D:
+			//printf("Bpred Config");
+			bpred_dir_config (pred->dirpred.bimod,"diasy chain perceptron", stream);
 		case BPredPerc:
-			printf("Bpred Config");
+			//printf("Bpred Config");
 			bpred_dir_config (pred->dirpred.bimod, "perceptron", stream);
 			//fprintf(stream, "perceptron");
 			break;	
@@ -397,7 +403,7 @@ FILE *stream			/* output stream */
 	fprintf(stream, "pred: dir-prediction rate = %f\n",
 	(double)pred->dir_hits/(double)(pred->dir_hits+pred->misses));
 	
-	if(pred->class == BPredPerc){
+	if(pred->class == BPredPerc || pred->class == BPredPerc_D){
 		Write_Output( NULL );
 	}
 		//printf("Print Predictor Stats");
@@ -420,6 +426,9 @@ struct stat_sdb_t *sdb	/* stats database */
 		case BPred2Level:
 			name = "bpred_2lev";
 			break;
+		case BPredPerc_D:
+			name = "bpred_perceptron_daisy_chain";
+			break;
 		case BPredPerc:
 			//printf("Register Branch Predictor Stats");
 			name = "bpred_perceptron";
@@ -440,7 +449,7 @@ struct stat_sdb_t *sdb	/* stats database */
 			panic("bogus branch predictor class");
 	}
 	
-	if(/*pred->class != BPredPerc*/1){
+	if(pred->class != BPredPerc && pred->class != BPredPerc_D){
 	
 		sprintf(buf, "%s.lookups", name);
 		
@@ -577,7 +586,49 @@ struct stat_sdb_t *sdb	/* stats database */
 		buf1, "%9.4f");
 	}
 	else{
+		//Print Statements for Perceptron:
+		sprintf(buf, "%s.updates", name);
 		
+		sprintf(buf1, "%s.dir_hits + %s.misses", name, name);
+		
+		stat_reg_formula(sdb, buf, "total number of updates", buf1, "%12.0f");
+		
+		sprintf(buf, "%s.addr_hits", name);
+		
+		stat_reg_counter(sdb, buf, "total number of address-predicted hits", 
+		&pred->addr_hits, 0, NULL);
+		
+		sprintf(buf, "%s.dir_hits", name);
+		
+		stat_reg_counter(sdb, buf, 
+		"total number of direction-predicted hits "
+		"(includes addr-hits)", 
+		&pred->dir_hits, 0, NULL);
+
+		sprintf(buf, "%s.misses", name);
+		
+		stat_reg_counter(sdb, buf, "total number of misses", &pred->misses, 0, NULL);
+		
+		sprintf(buf, "%s.addr_misses", name);
+		
+		stat_reg_counter(sdb, buf, "total number of direction-predicted misses + address-predicted misses",
+		&pred->addr_misses, 0, NULL);
+
+		sprintf(buf, "%s.bpred_addr_rate", name);
+		
+		sprintf(buf1, "%s.addr_hits / %s.updates", name, name);
+		
+		stat_reg_formula(sdb, buf,
+		"branch address-prediction rate (i.e., addr-hits/updates)",
+		buf1, "%9.4f");
+		
+		sprintf(buf, "%s.bpred_dir_rate", name);
+		
+		sprintf(buf1, "%s.dir_hits / %s.updates", name, name);
+		
+		stat_reg_formula(sdb, buf,
+		"branch direction-prediction rate (i.e., all-hits/updates)",
+		buf1, "%9.4f");
 	}
 }
 
@@ -742,12 +793,41 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 				bpred_dir_lookup (pred->dirpred.twolev, baddr);
 			}
 			break;
+		case BPredPerc_D:
+			if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
+				char* first_decision = NULL;
+				first_decision = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold, 
+							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp), 
+							pred->dirpred.perceptron->config.perceptron_list.msp);
+				
+				Perceptron* percep_pointer = pred->dirpred.perceptron->config.perceptron_list.msp->next_percep;
+				while(percep_pointer != NULL){
+					Bit *new_bit = NULL;
+					new_bit = (Bit*)malloc(sizeof(Bit));
+					if(*first_decision == 2)
+						new_bit->bit_value = 1;
+					else
+						new_bit->bit_value = 0;
+					
+					Shift_Add_Bit(percep_pointer->shift_reg, new_bit);
+				
+					first_decision = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
+								Sum_Weight(percep_pointer), percep_pointer);
+					
+					percep_pointer = percep_pointer->next_percep;
+				}
+				dir_update_ptr->pdir1 = first_decision;
+			}
 		case BPredPerc:
 			if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
 			//printf("Perceptron Reconfiguration");
-			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
+			/*dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
 							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),	
-							pred->dirpred.perceptron->config.perceptron_list.msp);
+							pred->dirpred.perceptron->config.perceptron_list.msp);*/
+
+			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
+							Sum_Weight(Hash_Percep((int)baddr, &pred->dirpred.perceptron->config.perceptron_list)),	
+							Hash_Percep((int)baddr, &pred->dirpred.perceptron->config.perceptron_list));
 			}
 			break;	
 		case BPred2bit:
@@ -893,10 +973,10 @@ enum md_opcode op,						/* opcode of instruction */
 struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 ){
 	if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
-	if(dir_update_ptr->pdir1 && pred->class == BPredPerc)
+	if((dir_update_ptr->pdir1 && pred->class == BPredPerc) || (dir_update_ptr->pdir1 && pred->class == BPredPerc_D))
 	{
 	
-		Perceptron_Training((!!pred_taken == !!taken), taken, pred->dirpred.perceptron->config.perceptron_list.msp);
+		Perceptron_Training((!!pred_taken == !!taken), !!taken, pred->dirpred.perceptron->config.perceptron_list.msp);
 		Bit *new_bit = NULL;
 		new_bit = (Bit*)malloc(sizeof(Bit));
 		new_bit->bit_value = taken;

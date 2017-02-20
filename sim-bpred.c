@@ -97,6 +97,11 @@ static int perceptron_nelt = 5;
 static int perceptron_config[5] = 
   { /*depth*/ 8, /*list*/ 1, /*max_weight*/ 127, /*min_weight*/ -127, /* threshold */ 0};
 
+/* Perceptron Daisy Chain config (<depth> <list> <max_weight> <min_weight> <threshold>) */
+static int per_day_nelt = 5;
+static int per_day_config[5] =
+{ /*depth*/8, /*list*/2, /*max_weight*/127, /*min_weight*/ -127, /*threshold*/ 0};
+
 /* combining predictor config (<meta_table_size> */
 static int comb_nelt = 1;
 static int comb_config[1] =
@@ -151,7 +156,7 @@ sim_reg_options(struct opt_odb_t *odb)
 	       /* print */TRUE, /* format */NULL);
 
   opt_reg_string(odb, "-bpred",
-		 "branch predictor type {nottaken|taken|bimod|2lev|comb|perceptron}",
+		 "branch predictor type {nottaken|taken|bimod|2lev|comb|perceptron|per_day}",
                  &pred_type, /* default */"bimod",
                  /* print */TRUE, /* format */NULL);
 
@@ -174,6 +179,13 @@ sim_reg_options(struct opt_odb_t *odb)
 		   perceptron_config, perceptron_nelt, &perceptron_nelt,
 		   /* default */ perceptron_config,
 		   /* print */TRUE, /* format */ NULL, /* !accrue */ FALSE);
+
+  opt_reg_int_list(odb, "-bpred:per_day", 
+			"Perceptron predictor config(<depth> <list> <max_weight> <min_weight> <threshold>)",
+			perceptron_config, perceptron_nelt, &perceptron_nelt,
+			/* default*/ perceptron_config,
+			/*print*/TRUE, /*format*/ NULL, /*!accrue*/ FALSE);
+
 
   opt_reg_int_list(odb, "-bpred:comb",
 		   "combining predictor config (<meta_table_size>)",
@@ -251,6 +263,28 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 			  /* max_weight */perceptron_config[2],
 			  /* min_weight */perceptron_config[3],
 			  /* threshold */perceptron_config[4],
+			  /*RAS size */ras_size);
+    }
+  else if(!mystricmp(pred_type,"per_day")){
+	if(per_day_nelt != 5)
+		fatal("bad perceptron daisy chain predictor configuration");
+	if(btb_nelt != 2)
+		fatal("bad btb config (<num_set> <associativity>)");
+
+	pred = bpred_create(BPredPerc_D,
+			  /* bimod table size */0,
+			  /* 2lev l1 size */twolev_config[0],
+			  /* 2lev l2 size */twolev_config[1],
+			  /* meta table size */0,
+			  /* history reg size */twolev_config[2],
+			  /* history xor address */twolev_config[3],
+			  /* btb sets*/btb_config[0],
+			  /* btb assoc*/btb_config[1],
+			  /* depth */per_day_config[0],
+			  /* list */per_day_config[1],
+			  /* max_weight */per_day_config[2],
+			  /* min_weight */per_day_config[3],
+			  /* threshold */per_day_config[4],
 			  /*RAS size */ras_size);
     }
   else if (!mystricmp(pred_type, "2lev"))
@@ -565,7 +599,7 @@ sim_main(void)
 	  struct bpred_update_t update_rec;
 
 	  sim_num_branches++;
-	  printf("BEFORE ANY PREDICTION STUFF\n");
+
 	  if (pred)
 	    {	
 	      /* get the next predicted fetch address */
@@ -597,10 +631,7 @@ sim_main(void)
 			   /* predictor update pointer */&update_rec);
 	    }
 	}
-<<<<<<< HEAD
-=======
-		printf("GOT THROUGH FIRST ITERATION");
->>>>>>> 168b9827ae309c6298f697a5cf7829ae6a8e5f88
+
       /* check for DLite debugger entry condition */
       if (dlite_check_break(regs.regs_NPC,
 			    is_write ? ACCESS_WRITE : ACCESS_READ,

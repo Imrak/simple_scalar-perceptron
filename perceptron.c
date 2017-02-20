@@ -176,14 +176,14 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 			//a forced positive, and every [ ODD ] weight we make will be a forced negative.
 			//This way the randomness at the beginning will be evened out.
 		if(i % 2 == 0){
-			new_weight->weight_value = min_weight - (rand() % (max_weight - min_weight) + 1);
+			new_weight->weight_value = -8 - (rand() % (16) + 1);
 			
 			if(new_weight->weight_value < 0)
 				new_weight->weight_value *= -1;
 		}
 		
 		else{
-			new_weight->weight_value = min_weight - (rand() % (max_weight - min_weight) + 1);
+			new_weight->weight_value = -8 - (rand() % (16) + 1);
 			
 			if(new_weight->weight_value > 0)
 				new_weight->weight_value *= -1;
@@ -474,7 +474,7 @@ int Sum_Weight( Perceptron *percep ){
 		
 		weight_pointer = weight_pointer->next_weight;
 	}
-	printf("\n");
+	//printf("\n");
 	
 	//Once we've finished looping and summing, we'll return the sum.
 	
@@ -524,8 +524,8 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep ){
 		//A 0 means the Perceptron predicted incorrectly.
 	
 	//If the Perceptron predicted correctly, then we need not train.
-	printf("%d\n",(int)decision);
-	printf("%d a", (int)actual);
+	//printf("%d\n",(int)decision);
+	//printf("%d a", (int)actual);
 	if(decision == actual){
 		//printf("RAWRR!!!");	
 		return;
@@ -562,7 +562,7 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep ){
 			bit_pointer = bit_pointer->next_bit;
 			weight_pointer = weight_pointer->next_weight;
 		}
-		printf("\n%d\n\n",percep->percep_data->train_count);
+		//printf("\n%d\n\n",percep->percep_data->train_count);
 	}
 }
 
