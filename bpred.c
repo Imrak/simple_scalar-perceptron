@@ -656,6 +656,10 @@ void bpred_after_priming(struct bpred_t *bpred){
 ((((ADDR) >> 19) ^ ((ADDR) >> MD_BR_SHIFT)) & ((PRED)->config.bimod.size-1))
 /* was: ((baddr >> 16) ^ baddr) & (pred->dirpred.bimod.size-1) */
 
+/* Perceptron Hash Functionality */
+#define PERCEP_HASH(PRED, ADDR) \
+(((ADDR) >> 19) ^ ((ADDR) >> (MD_BR_SHIFT)) & ((PRED)->dirpred.perceptron->config.perceptron_list.size-1))
+
 /* predicts a branch direction */
 	/* pointer to counter */
 char *bpred_dir_lookup(
@@ -824,10 +828,15 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 			/*dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
 							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),	
 							pred->dirpred.perceptron->config.perceptron_list.msp);*/
+				
+				int loc = (int)PERCEP_HASH(pred,baddr);
 
 			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
-							Sum_Weight(Hash_Percep((int)baddr, &pred->dirpred.perceptron->config.perceptron_list)),	
-							Hash_Percep((int)baddr, &pred->dirpred.perceptron->config.perceptron_list));
+							Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list)),	
+							Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
+				
+				printf("%d %d\n", PERCEP_HASH(pred, baddr), baddr);
+				printf("%d %d\n\n", PERCEP_HASH(pred,baddr) % (pred->dirpred.perceptron->config.perceptron_list.size+1), baddr % pred->dirpred.perceptron->config.perceptron_list.size);
 			}
 			break;	
 		case BPred2bit:
