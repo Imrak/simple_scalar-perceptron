@@ -230,7 +230,7 @@ struct Percep_List *Per_List_init( int depth, int size ){
 	
 	pList->reg_size = size;
 	
-	pList->shift_reg = Shift_Init( depth );
+	pList->shift_reg = Shift_Init( size );
 	
 	pList->lsp = NULL;
 	
@@ -1052,4 +1052,20 @@ struct Perceptron *Hash_Percep( int address, Percep_List *list ){
 	}
 	
 	return percep_pointer;
+}
+
+double Sum_Train( Percep_List *pList ){
+	double sum = 0;
+	
+	Perceptron *percep = NULL;
+	
+	percep = pList->msp;
+	
+	while(percep!=NULL){
+		sum += percep->percep_data->train_count;
+		//printf("\n%d",percep->percep_data->train_count);
+		percep = percep->next_percep;
+	}
+	
+	return sum;
 }

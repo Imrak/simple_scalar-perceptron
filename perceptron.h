@@ -518,5 +518,9 @@ int address,
 Percep_List *list
 );
 
+double Sum_Train(
+	Percep_List *pList	
+);
+
 #endif //PERCEPTRON_H
 //Header Guard: END
