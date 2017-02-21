@@ -629,6 +629,8 @@ struct stat_sdb_t *sdb	/* stats database */
 		stat_reg_formula(sdb, buf,
 		"branch direction-prediction rate (i.e., all-hits/updates)",
 		buf1, "%9.4f");
+		
+		printf("RAWRR!!!");	
 	}
 }
 
@@ -835,8 +837,11 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 							Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list)),	
 							Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
 				
-				printf("%d %d\n", PERCEP_HASH(pred, baddr), baddr);
-				printf("%d %d\n\n", PERCEP_HASH(pred,baddr) % (pred->dirpred.perceptron->config.perceptron_list.size+1), baddr % pred->dirpred.perceptron->config.perceptron_list.size);
+				//printf("%d %d\n", PERCEP_HASH(pred, baddr), baddr);
+				//printf("%d\n", Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
+				//printf("%d, %d, %d\n", pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold, Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list)),
+				//						*dir_update_ptr->pdir1);
+				//printf("%d %d\n\n", PERCEP_HASH(pred,baddr) % (pred->dirpred.perceptron->config.perceptron_list.size+1), baddr % pred->dirpred.perceptron->config.perceptron_list.size);
 			}
 			break;	
 		case BPred2bit:
@@ -984,12 +989,15 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 	if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
 	if((dir_update_ptr->pdir1 && pred->class == BPredPerc) || (dir_update_ptr->pdir1 && pred->class == BPredPerc_D))
 	{
+		int loc = (int)PERCEP_HASH(pred,baddr);
 	
-		Perceptron_Training((!!pred_taken == !!taken), !!taken, pred->dirpred.perceptron->config.perceptron_list.msp);
+		Perceptron_Training((!!pred_taken == !!taken), !!taken, Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
 		Bit *new_bit = NULL;
 		new_bit = (Bit*)malloc(sizeof(Bit));
-		new_bit->bit_value = taken;
-		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.msp->shift_reg, new_bit);		
+		new_bit->bit_value = !!taken;
+		Shift_Add_Bit(Hash_Percep(loc,& pred->dirpred.perceptron->config.perceptron_list)->shift_reg, new_bit);		
+		
+		printf("%d : %d\n",loc % pred->dirpred.perceptron->config.perceptron_list.size,Hash_Percep(loc,&pred->dirpred.perceptron->config.perceptron_list)->percep_data->train_count);
 	
 	}}
 
