@@ -122,7 +122,7 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 	}
 	
 		//Initialize the Shift Register.
-	percep->shift_reg = Shift_Init( depth );
+	//percep->shift_reg = Shift_Init( depth );
 	
 		//Initialize the Weight Register.
 	percep->weight_reg = Weight_Init( depth );
@@ -142,21 +142,21 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 	
 	for(i = 0; i < depth; i++){
 		//We must first create both Bit and Weight pointers.
-		Bit *new_bit = NULL;
+		//Bit *new_bit = NULL;
 		Weight *new_weight = NULL;
 		
 		//Allocate the memory for the Bit and Weights:
-		new_bit = (Bit*)malloc(sizeof(Bit));
+		//new_bit = (Bit*)malloc(sizeof(Bit));
 		new_weight = (Weight*)malloc(sizeof(Weight));
 		
 		//If there isn't enough memory to generate the bits and weights required, we need to warn the
 			//user. Additionally we'll actually exit the program under exit(EXIT_FAILURE) conditions
 			//so that they know they need to change some of the code.
-		if(new_bit == NULL){
+		/*if(new_bit == NULL){
 			printf("ERROR: OUT OF MEMORY WHEN ATTEMPTING TO MAKE NEW BIT!\n");
 			printf("\tEXITING PROGRAM UNDER : exit(EXIT_FAILURE)\n\n");
 			exit(EXIT_FAILURE);
-		}
+		}*/
 		
 		if(new_weight == NULL){
 			printf("ERROR: OUT OF MEMORY WHEN ATTEMPTING TO MAKE NEW WEIGHT!\n");
@@ -169,7 +169,7 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 			//we'll use the equation of min - (rand % range) + 1 to give us the correct weight
 			//values.
 		
-		new_bit->bit_value = 0;
+		//new_bit->bit_value = 0;
 		
 		//Due to the nature of the random numbers, we are more likely to generate negative
 			//values than positive ones. As such, every [ EVEN ] weight we make, will be
@@ -198,13 +198,13 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 		}
 		
 		//Now that the bit and weight are set. We'll add them to their respective Registers:
-		Shift_Add_Bit( percep->shift_reg, new_bit);
+		//Shift_Add_Bit( percep->shift_reg, new_bit);
 		Weight_Add_Weight( percep->weight_reg, new_weight);
 	}
 	
 	//The last thing we will do is set our weigh'd Bit value. For now, the Least Significant Bit will
 		//always be considered a 1.
-	percep->shift_reg->lsb->bit_value = 1;
+	//percep->shift_reg->lsb->bit_value = 1;
 	
 	//Finally, we'll return the perceptron.
 	return percep;
@@ -219,7 +219,7 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 		Percep_List *per_list 
 	);
 */
-struct Percep_List *Per_List_init( int depth ){
+struct Percep_List *Per_List_init( int depth, int size ){
 	srand(time(NULL));
 
 	Percep_List *pList = NULL;
@@ -228,11 +228,29 @@ struct Percep_List *Per_List_init( int depth ){
 	
 	pList->depth = depth;
 	
+	pList->reg_size = size;
+	
+	pList->shift_reg = Shift_Init( depth );
+	
 	pList->lsp = NULL;
 	
 	pList->msp = NULL;
 	
 	pList->size = 0;
+	
+	int i = 0;
+	
+	for( i = 0; i < depth; i ++){
+		Bit *new_bit = NULL;
+		
+		new_bit = (Bit*)malloc(sizeof(Bit));
+		
+		new_bit->bit_value = 0;
+		
+		Shift_Add_Bit(pList->shift_reg, new_bit);
+	}
+	
+	pList->shift_reg->lsb->bit_value = 1;
 	
 	return pList;
 }
@@ -386,7 +404,7 @@ void Remove_Perceptron( Percep_List *percep_list, Perceptron *target_percep ){
 		//Before we can free the target perceptron, we must first ensure
 			//that we delete the perceptron's Shift and Weight Registers
 			//as well. Or we could have memory leaks.
-		Delete_Shift_Register( target_percep->shift_reg );
+		//Delete_Shift_Register( target_percep->shift_reg );
 		Delete_Weight_Register( target_percep->weight_reg );
 		
 		//Once those have been deleted, we can then safetly free the
@@ -422,7 +440,7 @@ void Delete_Perceptron( Percep_List *percep_list ){
 		percep_pointer->next_percep = NULL;
 		percep_pointer->prev_percep = NULL;
 		
-		Delete_Shift_Register( percep_pointer->shift_reg );
+		//Delete_Shift_Register( percep_pointer->shift_reg );
 		Delete_Weight_Register( percep_pointer->weight_reg );
 		
 		free(percep_pointer);
@@ -442,7 +460,7 @@ void Delete_Perceptron( Percep_List *percep_list ){
 		Perceptron *percep
 	);
 */
-int Sum_Weight( Perceptron *percep ){
+int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	//We'll use a loaded summation program with a weight bias of +1 at all times.
 	int sum = 0;
 	
@@ -452,7 +470,7 @@ int Sum_Weight( Perceptron *percep ){
 	
 	//To correctly do this we must loop through both the Shift and Weight registers
 		//at the exact same time. So we'll use a bit_pointer and a weight_pointer.
-	Bit *bit_pointer = percep->shift_reg->msb;
+	Bit *bit_pointer = pList->shift_reg->msb;
 	Weight *weight_pointer = percep->weight_reg->msw;
 	
 	//The code is designed so that the Shift and Weight registers maintain the same size.
@@ -518,7 +536,7 @@ char *Decision( int threshold, int sum, Perceptron *percep ){
 		Perceptron *percep
 	);
 */
-void Perceptron_Training( char decision, char actual, Perceptron *percep ){
+void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep_List *pList ){
 	//First we must check to see if the decision was a 1 or a 0.
 		//A 1 means that the Perceptron predicted correctly. 
 		//A 0 means the Perceptron predicted incorrectly.
@@ -538,7 +556,7 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep ){
 		
 		//We the must cycle through both the Weight and Shift Registers simultaneously.
 			//To do that we'll need both a bit_pointer and a weight_pointer.
-		Bit *bit_pointer = percep->shift_reg->msb;
+		Bit *bit_pointer = pList->shift_reg->msb;
 		Weight *weight_pointer = percep->weight_reg->msw;
 		
 		//We'll then while loop through the Registers to train the weights accordingly.
@@ -598,7 +616,7 @@ void Set_Files( char *in_file, char *out_file, Perceptron *percep ){
 		char *out_file
 	);
 */
-void Test_From_File( unsigned char depth, unsigned short int list, signed char max_weight, signed char min_weight, signed char threshold,
+/*void Test_From_File( unsigned char depth, unsigned short int list, signed char max_weight, signed char min_weight, signed char threshold,
 					char *in_file, char *out_file ){
 	//First generate the Perceptron List;
 	Percep_List *pList = NULL;
@@ -710,7 +728,7 @@ void Test_From_File( unsigned char depth, unsigned short int list, signed char m
 	
 	return;
 						
-}
+}*/
 
 //-----------------------------------------------------------------------------//
 //
@@ -764,7 +782,7 @@ void Write_Output( Perceptron *percep ){
 		char *out_file
 	);
 */
-void Test_From_Array( int *array_pointer, int array_size, unsigned char depth, unsigned short int list, signed char max_weight, signed char min_weight, signed char threshold, char *out_file ){
+/*void Test_From_Array( int *array_pointer, int array_size, unsigned char depth, unsigned short int list, signed char max_weight, signed char min_weight, signed char threshold, char *out_file ){
 	//First generate the Perceptron List;
 	Percep_List *pList = NULL;
 	
@@ -834,7 +852,7 @@ void Test_From_Array( int *array_pointer, int array_size, unsigned char depth, u
 	Delete_Perceptron( pList );
 	
 	return;
-}
+}*/
 
 //-----------------------------------------------------------------------------//
 //
@@ -853,7 +871,7 @@ void Test_From_Array( int *array_pointer, int array_size, unsigned char depth, u
 		char *out_file
 	);
 */
-void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsigned short int list, signed char max_weight, signed char min_weight, signed char threshold, char *in_file, char *out_file ){
+/*void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsigned short int list, signed char max_weight, signed char min_weight, signed char threshold, char *in_file, char *out_file ){
 	//The Daisy Chain function has two possibilities:
 		//1) The user passes in only a File.
 		//2) The user passes in an array.
@@ -991,7 +1009,7 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 			Shift_Add_Bit( pList->msp->shift_reg, new_bit );
 			
 			//This will continue until all is over.*/
-		}
+		/*}
 		
 		//Once the file is completed, its time to call our output file Function.
 		Write_Output( pList->lsp );
@@ -1011,7 +1029,7 @@ void Daisy_Chain( int *array_pointer, int array_size, unsigned char depth, unsig
 	
 	
 	
-}
+}*/
 //-----------------------------------------------------------------------------//
 //
 //

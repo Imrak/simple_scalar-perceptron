@@ -110,7 +110,8 @@ enum bpred_class {
 	BPredTaken,					/* static predict taken */
 	BPredNotTaken,				/* static predict not taken */
 	BPred_NUM,
-	BPredPerc				/* Perceptron Predictor */
+	BPredPerc,				/* Perceptron Predictor */
+	BPredPerc_D				/* Daisy Chain Perceptron */
 };
 
 /* an entry in a BTB */

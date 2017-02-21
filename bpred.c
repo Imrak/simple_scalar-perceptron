@@ -119,7 +119,7 @@ struct bpred_t *bpred_create(
 		case BPredPerc:
 			//pList = (Percep_List*)malloc(sizeof(Percep_List));
 			//printf("RAWRR!!!");
-			pList = Per_List_init(depth);
+			pList = Per_List_init( list, depth );
 			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
 			int i = 0;
 			for(i = 0; i < list; i++) {
@@ -800,7 +800,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 			}
 			break;
 		case BPredPerc_D:
-			if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
+			/*if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
 				char* first_decision = NULL;
 				first_decision = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold, 
 							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp), 
@@ -823,7 +823,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 					percep_pointer = percep_pointer->next_percep;
 				}
 				dir_update_ptr->pdir1 = first_decision;
-			}
+			}*/
 		case BPredPerc:
 			if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
 			//printf("Perceptron Reconfiguration");
@@ -833,8 +833,8 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 				
 				int loc = (int)PERCEP_HASH(pred,baddr);
 
-			dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
-							Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list)),	
+				dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
+							Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list), &pred->dirpred.perceptron->config.perceptron_list),	
 							Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
 				
 				//printf("%d %d\n", PERCEP_HASH(pred, baddr), baddr);
@@ -991,11 +991,11 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 	{
 		int loc = (int)PERCEP_HASH(pred,baddr);
 	
-		Perceptron_Training((!!pred_taken == !!taken), !!taken, Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
+		Perceptron_Training((!!pred_taken == !!taken), !!taken, Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list),&pred->dirpred.perceptron->config.perceptron_list);
 		Bit *new_bit = NULL;
 		new_bit = (Bit*)malloc(sizeof(Bit));
 		new_bit->bit_value = !!taken;
-		Shift_Add_Bit(Hash_Percep(loc,& pred->dirpred.perceptron->config.perceptron_list)->shift_reg, new_bit);		
+		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.shift_reg, new_bit);		
 		
 		printf("%d : %d\n",loc % pred->dirpred.perceptron->config.perceptron_list.size,Hash_Percep(loc,&pred->dirpred.perceptron->config.perceptron_list)->percep_data->train_count);
 	

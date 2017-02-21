@@ -97,7 +97,7 @@ typedef struct Percep_Data{
 				in a Perceptron List. [ Not required when only using 1 ].
 */
 typedef struct Perceptron{
-	Shift_Register *shift_reg;
+	//Shift_Register *shift_reg;
 	
 	Weight_Register *weight_reg;
 	
@@ -132,9 +132,13 @@ typedef struct Percep_List{
 	
 	Perceptron *lsp;
 	
+	Shift_Register *shift_reg;
+	
 	int size;
 	
 	int depth;
+	
+	int reg_size;
 	
 }Percep_List;
 
@@ -202,7 +206,8 @@ struct Perceptron *Perceptron_Init(
 		List. 
 */
 struct Percep_List *Per_List_init( 
-	int depth 
+	int depth,
+	int size
 );
 
 //-----------------------------------------------------------------------------//
@@ -306,7 +311,8 @@ void Delete_Perceptron(
 				Not-Taken.
 */
 int Sum_Weight(
-	Perceptron *percep
+	Perceptron *percep,
+	Percep_List *pList
 );
 
 //-----------------------------------------------------------------------------//
@@ -372,7 +378,8 @@ char *Decision(
 void Perceptron_Training(
 	char decision,
 	char actual,
-	Perceptron *percep
+	Perceptron *percep,
+	Percep_List *pList
 );
 
 //-----------------------------------------------------------------------------//
