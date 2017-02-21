@@ -65,6 +65,7 @@
 		Percep_Data *percep_data
 	);
 */
+
 struct Percep_Data *Data_Init( unsigned char depth, signed char max_weight, 
 				signed char min_weight, signed char threshold, unsigned short int links ){
 	struct Percep_Data *percep_data = NULL;
@@ -92,7 +93,9 @@ struct Percep_Data *Data_Init( unsigned char depth, signed char max_weight,
 	percep_data->links = links;
 	
 	percep_data->train_value = 1;
-	
+	#if DEBUG
+	printf("In Data_Init\n");	
+	#endif
 	return percep_data;
 }
 
@@ -139,6 +142,10 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 			//Shift and Weight registers. When this is returned it will have everything required to
 			//immediatly begin.
 	int i = 0;
+	
+	#if DEBUG
+	printf("Initializing Perceptron. Weights:\n");	
+	#endif
 	
 	for(i = 0; i < depth; i++){
 		//We must first create both Bit and Weight pointers.
@@ -196,7 +203,10 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 		if(new_weight->weight_value > max_weight){
 			new_weight->weight_value = max_weight;
 		}
-		
+		#if DEBUG
+		printf("Weight %d is %d\n", i, new_weight->weight_value);
+		#endif
+
 		//Now that the bit and weight are set. We'll add them to their respective Registers:
 		//Shift_Add_Bit( percep->shift_reg, new_bit);
 		Weight_Add_Weight( percep->weight_reg, new_weight);
@@ -239,14 +249,19 @@ struct Percep_List *Per_List_init( int depth, int size ){
 	pList->size = 0;
 	
 	int i = 0;
-	
-	for( i = 0; i < depth; i ++){
+	#if DEBUG
+	printf("Initializing Perceptron list. Shift Register:\n");	
+	#endif
+
+	for( i = 0; i < size; i ++){
 		Bit *new_bit = NULL;
 		
 		new_bit = (Bit*)malloc(sizeof(Bit));
 		
 		new_bit->bit_value = 0;
-		
+		#if DEBUG
+		printf("Shift_Register %d is %d\n", i, new_bit->bit_value);
+		#endif
 		Shift_Add_Bit(pList->shift_reg, new_bit);
 	}
 	
@@ -268,12 +283,15 @@ struct Percep_List *Per_List_init( int depth, int size ){
 void Percep_Add_Percep( Percep_List *percep_list, Perceptron *new_percep ){
 	//First we must check that the Perceptron List isn't empty.
 		//If it is we simply attach the new_perceptron as the first in the list.
+	#if DEBUG
+	printf("In Percep_Add_Percep\n");	
+	#endif
 	if( percep_list->msp == NULL && percep_list->lsp == NULL ){
 		percep_list->msp = new_percep;
 		
 		percep_list->lsp = new_percep;
 	}
-	
+
 	//Second we much check that the Perceptron List is not at maximum capacity.
 		//If it is we'll display a user warning, and continue with the program.
 	else if( percep_list->size == percep_list->depth ){
@@ -475,7 +493,10 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	//The code is designed so that the Shift and Weight registers maintain the same size.
 		//As such we can continue a while loop until both pointers reach the ends
 		//of their respective lists.
-	
+	#if DEBUG
+	printf("In Sum_Weight\n");	
+	#endif
+
 	while(bit_pointer != NULL && weight_pointer != NULL){
 		//First, if the bit_pointer's bit_value == 0, we'll subtract the
 			//weight_value from the sum.
@@ -486,7 +507,10 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 		//Otherwise, we'll add to it.
 		else
 			sum += weight_pointer->weight_value;
-			
+		#if DEBUG
+		printf("Shift_register_bit: %d, Weight: %d, Sum: %d\n", bit_pointer->bit_value, weight_pointer->weight_value, sum);
+		#endif
+
 		bit_pointer = bit_pointer->next_bit;
 		
 		weight_pointer = weight_pointer->next_weight;
@@ -520,7 +544,10 @@ char *Decision( int threshold, int sum, Perceptron *percep ){
 	
 	else
 		*decision = 2;
-	
+	#if DEBUG
+	printf("In Decision. Sum is %d, threshold is %d, decision is %d\n", sum, threshold, *decision);	
+	#endif
+
 	//Then we'll return the decision:
 	return decision;
 }
@@ -541,15 +568,23 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 		//A 0 means the Perceptron predicted incorrectly.
 	
 	//If the Perceptron predicted correctly, then we need not train.
-	//printf("%d\n",(int)decision);
-	//printf("%d a", (int)actual);
+	#if DEBUG
+	printf("Decision: %d\n", decision);
+	printf("Actual: %d\n", actual);
+	#endif
 	if(decision == actual){
-		//printf("RAWRR!!!");	
+		#if DEBUG
+		printf("CORRECT.\n");	
+		#endif
 		return;
 	}
 		
 	//If the Perceptron did not predict correctly, it must train.
 	else{
+		#if DEBUG
+		printf("INCORRECT. TRAINING.\n");	
+		#endif
+
 		//We'll increment the perceptron's train counter by +1.
 		percep->percep_data->train_count += 1;
 		
@@ -575,7 +610,8 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 
 			if(weight_pointer->weight_value > percep->percep_data->max_weight)
 				weight_pointer->weight_value = percep->percep_data->max_weight;
-				
+			
+					
 			bit_pointer = bit_pointer->next_bit;
 			weight_pointer = weight_pointer->next_weight;
 		}
@@ -1039,13 +1075,14 @@ void Write_Output( Perceptron *percep ){
 
 
 struct Perceptron *Hash_Percep( int address, Percep_List *list ){
-	int location = address % list->size;
-	
 	int count = 0;
 	
 	Perceptron *percep_pointer = list->msp;
-	
-	while(percep_pointer != NULL && count != location){
+	#if DEBUG
+	printf("In Hash_Percep. Hashing to perceptron %d\n", address);
+	#endif
+
+	while(percep_pointer != NULL && count != address){
 		percep_pointer = percep_pointer->next_percep;
 		count++;
 	}

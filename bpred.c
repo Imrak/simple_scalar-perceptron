@@ -214,7 +214,6 @@ unsigned int l2size,	 	/* level-2 table size (if relevant) */
 unsigned int shift_width,	/* history register width */
 unsigned int xor			/* history xor address flag */
 ){
-	//printf("Direction Creation RAWRR!!!");
 	struct bpred_dir_t *pred_dir;
 	unsigned int cnt;
 	int flipflop;
@@ -323,7 +322,6 @@ FILE *stream)			/* output stream */
 		case BPredPerc_D:
 			fprintf(stream,"pred_dir: %s: daisy chain perceptron predictor\n",name);
 		case BPredPerc:
-			//printf("PERCEPTRON CONFIGURATION RAWRR!!!");
 			fprintf(stream, "pred_dir: %s: perceptron predictor\n", name);
 			break;
   		case BPred2bit:
@@ -365,12 +363,9 @@ FILE *stream			/* output stream */
 			fprintf(stream, "ret_stack: %d entries", pred->retstack.size);
 			break;
 		case BPredPerc_D:
-			//printf("Bpred Config");
 			bpred_dir_config (pred->dirpred.bimod,"diasy chain perceptron", stream);
 		case BPredPerc:
-			//printf("Bpred Config");
 			bpred_dir_config (pred->dirpred.bimod, "perceptron", stream);
-			//fprintf(stream, "perceptron");
 			break;	
 		case BPred2bit:
 			bpred_dir_config (pred->dirpred.bimod, "bimod", stream);
@@ -429,7 +424,6 @@ struct stat_sdb_t *sdb	/* stats database */
 			name = "bpred_perceptron_daisy_chain";
 			break;
 		case BPredPerc:
-			//printf("Register Branch Predictor Stats");
 			name = "bpred_perceptron";
 			break;			
 		case BPred2bit:
@@ -629,9 +623,6 @@ struct stat_sdb_t *sdb	/* stats database */
 		"branch direction-prediction rate (i.e., all-hits/updates)",
 		buf1, "%9.4f");
 		
-		printf("RAWRR!!!");	
-			
-		printf("\n%0.2f\n", Sum_Train(&pred->dirpred.perceptron->config.perceptron_list));	
 	}
 }
 
@@ -680,7 +671,6 @@ char *bpred_dir_lookup(
 			
 			/* traverse 2-level tables */
 			l1index = (baddr >> MD_BR_SHIFT) & (pred_dir->config.two.l1size - 1);
-			
 			l2index = pred_dir->config.two.shiftregs[l1index];
 			
 			if (pred_dir->config.two.xor)
@@ -830,10 +820,8 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 			//printf("Perceptron Reconfiguration");
 			/*dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
 							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),	
-							pred->dirpred.perceptron->config.perceptron_list.msp);*/
-				
-				int loc = (int)PERCEP_HASH(pred,baddr);
-
+							pred->dirpred.perceptron->config.perceptron_list.msp);*/	
+				int loc = (baddr >> MD_BR_SHIFT) & (pred->dirpred.perceptron->config.perceptron_list.size - 1);				
 				dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
 							Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list), &pred->dirpred.perceptron->config.perceptron_list),	
 							Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
@@ -988,24 +976,17 @@ enum md_opcode op,						/* opcode of instruction */
 struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 ){
 	if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
-	if((dir_update_ptr->pdir1 && pred->class == BPredPerc) || (dir_update_ptr->pdir1 && pred->class == BPredPerc_D))
-	{
-		int loc = (int)PERCEP_HASH(pred,baddr);
-	
-		Perceptron_Training((!!pred_taken == !!taken), !!taken, Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list),&pred->dirpred.perceptron->config.perceptron_list);
-		Bit *new_bit = NULL;
-		new_bit = (Bit*)malloc(sizeof(Bit));
-		new_bit->bit_value = !!taken;
-		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.shift_reg, new_bit);		
+		if((dir_update_ptr->pdir1 && pred->class == BPredPerc) || (dir_update_ptr->pdir1 && pred->class == BPredPerc_D))
+		{
+			int loc = (baddr >> MD_BR_SHIFT) & (pred->dirpred.perceptron->config.perceptron_list.size - 1);	
+			Perceptron_Training((!!pred_taken == !!taken), !!taken, Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list),&pred->dirpred.perceptron->config.perceptron_list);
+			Bit *new_bit = NULL;
+			new_bit = (Bit*)malloc(sizeof(Bit));
+			new_bit->bit_value = !!taken;
+			Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.shift_reg, new_bit);			
+		}
 		
-		//printf("%d\n", pred->dirpred.perceptron->config.perceptron_list.shift_reg->depth);
-		//printf("%d : %d\n",loc % pred->dirpred.perceptron->config.perceptron_list.size,Hash_Percep(loc,&pred->dirpred.perceptron->config.perceptron_list)->percep_data->train_count);
-	
-	}
-		//printf("%0.2f\n", Sum_Train(&pred->dirpred.perceptron->config.perceptron_list));
-	}
-
-	//printf("BPRED UPDATE RAWRR!!!");
+	}	
 	struct bpred_btb_ent_t *pbtb = NULL;
 	
 	struct bpred_btb_ent_t *lruhead = NULL, *lruitem = NULL;

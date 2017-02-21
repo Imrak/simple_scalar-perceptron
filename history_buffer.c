@@ -4,6 +4,7 @@
 #include "shift_register.h"
 #include "weight_register.h"
 
+#if 0
 //-----------------------------------------------------------------------------//
 //
 //	                           STRUCTURES
@@ -906,6 +907,7 @@ void Test_File(char* in_file, char* out_file, int depth, int reg_size, signed ch
 	//Then we'll return from the function:
 	return;
 }
+#endif
 	
 	
 	

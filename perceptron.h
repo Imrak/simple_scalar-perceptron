@@ -20,7 +20,7 @@
 								//If the Summation of the Weights is [ greater than or equal to ] the Threshold
 								// the Perceptron will guess [ Taken := 1 ]
 #define LINKS 1				//Use this to define the depth of the Perceptron List, if applicable
-
+#define DEBUG 0				// Will print out debug information if one
 //Header Guard: START
 #ifndef PERCEPTRON_H
 #define PERCEPTRON_H
