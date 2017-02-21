@@ -150,6 +150,7 @@ sim_reg_options(struct opt_odb_t *odb)
 "  Predictor `comb' combines a bimodal and a 2-level predictor.\n"
                );
 
+
   /* instruction limit */
   opt_reg_uint(odb, "-max:inst", "maximum number of inst's to execute",
 	       &max_insts, /* default */0,
@@ -209,6 +210,7 @@ sim_reg_options(struct opt_odb_t *odb)
 void
 sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
 {
+
   if (!mystricmp(pred_type, "taken"))
     {
       /* static predictor, not taken */
@@ -343,6 +345,7 @@ sim_check_options(struct opt_odb_t *odb, int argc, char **argv)
     }
   else
     fatal("cannot parse predictor type `%s'", pred_type);
+
 }
 
 /* register simulator-specific statistics */

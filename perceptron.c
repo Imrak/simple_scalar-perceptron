@@ -461,7 +461,6 @@ void Delete_Perceptron( Percep_List *percep_list ){
 	);
 */
 int Sum_Weight( Perceptron *percep, Percep_List *pList ){
-	//We'll use a loaded summation program with a weight bias of +1 at all times.
 	int sum = 0;
 	
 	//To sum the weight's of the Perceptron we must look at the Bit that corresponds to

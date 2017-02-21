@@ -118,8 +118,6 @@ struct bpred_t *bpred_create(
 		case BPredPerc_D:
 		case BPredPerc:
 			pList = (Percep_List*)malloc(sizeof(Percep_List));
-			//printf("RAWRR!!!");
-			//printf("%d : %d\n",depth,list);
 			pList = Per_List_init( list, depth );
 			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
 			int i = 0;
@@ -1004,7 +1002,7 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 		//printf("%d : %d\n",loc % pred->dirpred.perceptron->config.perceptron_list.size,Hash_Percep(loc,&pred->dirpred.perceptron->config.perceptron_list)->percep_data->train_count);
 	
 	}
-		printf("%0.2f\n", Sum_Train(&pred->dirpred.perceptron->config.perceptron_list));
+		//printf("%0.2f\n", Sum_Train(&pred->dirpred.perceptron->config.perceptron_list));
 	}
 
 	//printf("BPRED UPDATE RAWRR!!!");

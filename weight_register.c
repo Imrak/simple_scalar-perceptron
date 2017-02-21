@@ -98,10 +98,11 @@ void Weight_Add_Weight( Weight_Register *weight_reg, Weight *new_weight ){
 		//Set the current msw's prev_weight to the new_weight:
 		weight_reg->msw->prev_weight = new_weight;
 		
-			//Set the new_weight's next_weight to the current msw:
+		//Set the new_weight's next_weight to the current msw:
 		new_weight->next_weight = weight_reg->msw;
-		
-			//Set the msw to the new_weight:
+		//Set the new_weight's previous weight to NULL, new head 
+		new_weight->prev_weight = NULL;	
+		//Set the msw to the new_weight:
 		weight_reg->msw = new_weight;
 	}
 	
