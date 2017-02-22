@@ -572,7 +572,7 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 	printf("Decision: %d\n", decision);
 	printf("Actual: %d\n", actual);
 	#endif
-	if(decision == actual){
+	if(decision){
 		#if DEBUG
 		printf("CORRECT.\n");	
 		#endif
