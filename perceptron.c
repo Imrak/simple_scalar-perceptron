@@ -576,6 +576,7 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 		#if DEBUG
 		printf("CORRECT.\n");	
 		#endif
+		percep->percep_data->hit_count++;
 		return;
 	}
 		
@@ -587,7 +588,7 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 
 		//We'll increment the perceptron's train counter by +1.
 		percep->percep_data->train_count += 1;
-		
+		percep->percep_data->miss_count++;
 		//We the must cycle through both the Weight and Shift Registers simultaneously.
 			//To do that we'll need both a bit_pointer and a weight_pointer.
 		Bit *bit_pointer = pList->shift_reg->msb;
@@ -800,6 +801,24 @@ void Write_Output( Perceptron *percep ){
 	fclose(outFile);
 	
 	return;
+}
+
+void Print_Output(Percep_List *list) {
+	int count = 0;
+	Perceptron *percep_pointer = list->msp;
+
+	while(percep_pointer != NULL){
+		printf("STATISTICS FOR PERCEPTRON %d\n", count);
+		printf("Hit Count: %.0f\n", percep_pointer->percep_data->hit_count);
+		printf("Miss Count: %.0f\n", percep_pointer->percep_data->miss_count);
+		printf("Total Count: %.0f\n", percep_pointer->percep_data->miss_count + percep_pointer->percep_data->hit_count);
+		printf("Trained: %d\n", percep_pointer->percep_data->train_count);
+		printf("Accuracy: %.6f\n", percep_pointer->percep_data->hit_count / (percep_pointer->percep_data->hit_count + percep_pointer->percep_data->miss_count));
+		printf("--------------------\n\n");
+		percep_pointer = percep_pointer->next_percep;
+		count++;
+	}
+
 }
 
 //-----------------------------------------------------------------------------//

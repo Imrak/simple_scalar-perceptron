@@ -20,7 +20,7 @@
 								//If the Summation of the Weights is [ greater than or equal to ] the Threshold
 								// the Perceptron will guess [ Taken := 1 ]
 #define LINKS 1				//Use this to define the depth of the Perceptron List, if applicable
-#define DEBUG 0				// Will print out debug information if one
+#define DEBUG 1				// Will print out debug information if one
 //Header Guard: START
 #ifndef PERCEPTRON_H
 #define PERCEPTRON_H
@@ -450,6 +450,12 @@ void Test_From_File(
 */
 void Write_Output(
 	Perceptron *percep
+);
+
+
+// Method created to print out results to stdout
+void Print_Output(
+	Percep_List *list
 );
 
 //-----------------------------------------------------------------------------//

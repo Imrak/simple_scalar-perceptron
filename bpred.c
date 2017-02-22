@@ -983,7 +983,10 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 			Bit *new_bit = NULL;
 			new_bit = (Bit*)malloc(sizeof(Bit));
 			new_bit->bit_value = !!taken;
-			Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.shift_reg, new_bit);			
+			Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.shift_reg, new_bit);
+			#if DEBUG	
+			Print_Output(&pred->dirpred.perceptron->config.perceptron_list);
+			#endif
 		}
 		
 	}	
