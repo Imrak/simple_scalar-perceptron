@@ -497,7 +497,7 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	printf("In Sum_Weight\n");	
 	#endif
 
-	while(bit_pointer != NULL && weight_pointer != NULL){
+	while(bit_pointer != NULL){
 		//First, if the bit_pointer's bit_value == 0, we'll subtract the
 			//weight_value from the sum.
 		//printf("%d ",weight_pointer->weight_value);
@@ -514,6 +514,14 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 		bit_pointer = bit_pointer->next_bit;
 		
 		weight_pointer = weight_pointer->next_weight;
+		
+		//If we get to the point that there are no more weights, but still Bits in the Shift Register
+			//then we'll loop through the weight register again.
+			//This is how we'll deal with large shift registers over weight registers for now.
+		if(weight_pointer == NULL && bit_pointer != NULL)
+		{
+			weight_pointer = percep->weight_reg->msw;
+		}
 	}
 	//printf("\n");
 	
@@ -1123,4 +1131,58 @@ double Sum_Train( Percep_List *pList ){
 	}
 	
 	return sum;
+}
+
+//-----------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------------------------------//
+/*
+	Update_Shift_Reg(
+		Percep_List *pList,
+		int new_shift_reg_size
+	)
+*/
+void Update_Shift_Reg( Percep_List *pList, int new_shift_reg_size ){
+		//First we set an old_size variable to the current pList's register size.
+	int old_size = pList->reg_size;
+	
+		//Then we check to see if the new size is larger or smaller than the old size.
+	if(old_size < new_shift_reg_size){
+			//In the event that the old size is smaller than the new size,
+			//Then we must add bits to the shift register.
+		Bit *new_bit = NULL;
+		
+			//We'll update the Perceptron List to the new register size.
+		pList->reg_size = new_shift_reg_size;
+		
+			//Then we'll loop until the old size now matches the new size.
+		while(old_size != new_shift_reg_size){
+				//While we loop, we'll generate new bits and set them to 0.
+			new_bit = (Bit*)malloc(sizeof(Bit));
+			new_bit->bit_value = 0;
+			
+				//Then attach them to the shift register.
+			Shift_Add_Bit(pList->shift_reg, new_bit);
+			
+			old_size++;
+		}
+	}
+	
+	else{
+			//In the event that the new size is smaller than the old size, we must now
+				//delete Bits from our Shift Register.
+			
+			//First we update the Perceptron List with the new register size.
+				//Then we loop until we've deleted enough Bits from the shift register.
+		pList->reg_size = new_shift_reg_size;
+		while(old_size != new_shift_reg_size){
+			Shift_Delete_Bit( pList->shift_reg );
+			
+			old_size--;
+		}
+	}
+	
+		//Lastly we ensure we maintain our Bias Weight by keeping the LSB as 1.
+	pList->shift_reg->lsb->bit_value = 1;
 }

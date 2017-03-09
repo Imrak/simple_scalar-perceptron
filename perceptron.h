@@ -528,5 +528,36 @@ double Sum_Train(
 	Percep_List *pList	
 );
 
+//-----------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------------------------------//
+/*
+	Update_Shift_Reg:
+		The Update Shift Reg function allows you to modify the Global Shift Register
+		without having to simply rerun the entire program.
+		
+		It requires:
+			1) The Perceptron List that has the Global Shift Register.
+			2) The new depth for the Shift Register.
+				In the event that shift register is [ Increasing ] in size, new bit
+					will be added.
+				In the event the shift register is [ Decreasing ] in size, bits will
+					be removed, starting from the LSB location.
+					
+		Be warned:
+			If you make the Global Shift Register larger than the Weight Registers when
+			the Perceptron calls the summing function it, currently, will continue to loop
+			through the weight register(s) until the Global Shift Register has reached the end.
+			
+			If you make the Global Shift Register smaller than the Weight Registers, the 
+			Perceptron will continue to sum the weights until the Global Shift Register has
+			reached the LSB.
+*/
+void Update_Shift_Reg(
+	Percep_List *pList,
+	int new_shift_reg_size
+);
+
 #endif //PERCEPTRON_H
 //Header Guard: END
