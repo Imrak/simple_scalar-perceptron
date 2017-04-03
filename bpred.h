@@ -147,6 +147,8 @@ struct bpred_dir_t {
 
 		struct Percep_List perceptron_list;
 		
+		struct Percep_Table perceptron_table;
+		
 	} config;
 };
 

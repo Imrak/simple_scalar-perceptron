@@ -66,8 +66,11 @@
 	);
 */
 
-struct Percep_Data *Data_Init( unsigned char depth, signed char max_weight, 
-				signed char min_weight, signed char threshold, unsigned short int links ){
+struct Percep_Data *Data_Init( int depth, 
+	signed char max_weight, 			
+	signed char min_weight, 
+	signed char threshold, 
+	int links ){
 	struct Percep_Data *percep_data = NULL;
 	
 	percep_data = (Percep_Data*)malloc(sizeof(Percep_Data));
@@ -93,9 +96,13 @@ struct Percep_Data *Data_Init( unsigned char depth, signed char max_weight,
 	percep_data->links = links;
 	
 	percep_data->train_value = 1;
-	#if DEBUG
+	
+	percep_data->stagnant = 64;
+	
+	percep_data->doneskies = 0;
+	/*#if DEBUG
 	printf("In Data_Init\n");	
-	#endif
+	#endif*/
 	return percep_data;
 }
 
@@ -108,8 +115,11 @@ struct Percep_Data *Data_Init( unsigned char depth, signed char max_weight,
 		Perceptron *perceptron
 	);
 */
-struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight, signed char min_weight, 
-									signed char threshold, unsigned short int links){
+struct Perceptron *Perceptron_Init( int depth, 
+	signed char max_weight, 
+	signed char min_weight, 
+	signed char threshold, 
+	int links){
 		//We'll begin by creating a pointer to a Perceptron structure. This will be the structure we return.								
 	struct Perceptron *percep = NULL;
 	
@@ -143,9 +153,9 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 			//immediatly begin.
 	int i = 0;
 	
-	#if DEBUG
+	/*#if DEBUG
 	printf("Initializing Perceptron. Weights:\n");	
-	#endif
+	#endif*/
 	
 	for(i = 0; i < depth; i++){
 		//We must first create both Bit and Weight pointers.
@@ -203,9 +213,9 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 		if(new_weight->weight_value > max_weight){
 			new_weight->weight_value = max_weight;
 		}
-		#if DEBUG
+		/*#if DEBUG
 		printf("Weight %d is %d\n", i, new_weight->weight_value);
-		#endif
+		#endif*/
 
 		//Now that the bit and weight are set. We'll add them to their respective Registers:
 		//Shift_Add_Bit( percep->shift_reg, new_bit);
@@ -229,10 +239,18 @@ struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight,
 		Percep_List *per_list 
 	);
 */
-struct Percep_List *Per_List_init( int depth, int size ){
-	srand(time(NULL));
+struct Percep_List *Per_List_init( int depth, 
+	int size, 
+	signed char max_weight, 
+	signed char min_weight, 
+	signed char threshold, 
+	int links 
+	){
+	//srand(time(NULL));
 
-	Percep_List *pList = NULL;
+	Perceptron *new_percep;
+
+	struct Percep_List *pList = NULL;
 	
 	pList = (Percep_List*)malloc(sizeof(Percep_List));
 	
@@ -240,7 +258,7 @@ struct Percep_List *Per_List_init( int depth, int size ){
 	
 	pList->reg_size = size;
 	
-	pList->shift_reg = Shift_Init( size );
+	pList->shift_reg = Shift_Init( depth );
 	
 	pList->lsp = NULL;
 	
@@ -249,19 +267,24 @@ struct Percep_List *Per_List_init( int depth, int size ){
 	pList->size = 0;
 	
 	int i = 0;
-	#if DEBUG
+	/*#if DEBUG
 	printf("Initializing Perceptron list. Shift Register:\n");	
-	#endif
+	#endif*/
+	for(i = 0; i < size; i++){
+		new_percep = Perceptron_Init( depth, max_weight, min_weight, threshold, links );
+		
+		Percep_Add_Percep( pList, new_percep );
+	}
 
-	for( i = 0; i < size; i ++){
+	for( i = 0; i < depth; i ++){
 		Bit *new_bit = NULL;
 		
 		new_bit = (Bit*)malloc(sizeof(Bit));
 		
 		new_bit->bit_value = 0;
-		#if DEBUG
-		printf("Shift_Register %d is %d\n", i, new_bit->bit_value);
-		#endif
+		//#if DEBUG
+		//printf("Shift_Register %d is %d\n", i, new_bit->bit_value);
+		//#endif
 		Shift_Add_Bit(pList->shift_reg, new_bit);
 	}
 	
@@ -283,9 +306,9 @@ struct Percep_List *Per_List_init( int depth, int size ){
 void Percep_Add_Percep( Percep_List *percep_list, Perceptron *new_percep ){
 	//First we must check that the Perceptron List isn't empty.
 		//If it is we simply attach the new_perceptron as the first in the list.
-	#if DEBUG
+	/*#if DEBUG
 	printf("In Percep_Add_Percep\n");	
-	#endif
+	#endif*/
 	if( percep_list->msp == NULL && percep_list->lsp == NULL ){
 		percep_list->msp = new_percep;
 		
@@ -294,7 +317,7 @@ void Percep_Add_Percep( Percep_List *percep_list, Perceptron *new_percep ){
 
 	//Second we much check that the Perceptron List is not at maximum capacity.
 		//If it is we'll display a user warning, and continue with the program.
-	else if( percep_list->size == percep_list->depth ){
+	else if( percep_list->size == percep_list->reg_size ){
 		printf("ERROR: PERCEPTRON LIST AT MAXIMUM CAPACITY. NO NEW PERCEPTRONS WILL BE ADDED.\n");
 		printf("\tEXITING FUNCTION. CONTINUING PROGRAM.\n\n");
 		return;
@@ -493,11 +516,11 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	//The code is designed so that the Shift and Weight registers maintain the same size.
 		//As such we can continue a while loop until both pointers reach the ends
 		//of their respective lists.
-	#if DEBUG
+	/*#if DEBUG
 	printf("In Sum_Weight\n");	
-	#endif
+	#endif*/
 
-	while(bit_pointer != NULL){
+	while(bit_pointer != NULL && weight_pointer != NULL){
 		//First, if the bit_pointer's bit_value == 0, we'll subtract the
 			//weight_value from the sum.
 		//printf("%d ",weight_pointer->weight_value);
@@ -507,21 +530,13 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 		//Otherwise, we'll add to it.
 		else
 			sum += weight_pointer->weight_value;
-		#if DEBUG
+		/*#if DEBUG
 		printf("Shift_register_bit: %d, Weight: %d, Sum: %d\n", bit_pointer->bit_value, weight_pointer->weight_value, sum);
-		#endif
+		#endif*/
 
 		bit_pointer = bit_pointer->next_bit;
 		
 		weight_pointer = weight_pointer->next_weight;
-		
-		//If we get to the point that there are no more weights, but still Bits in the Shift Register
-			//then we'll loop through the weight register again.
-			//This is how we'll deal with large shift registers over weight registers for now.
-		if(weight_pointer == NULL && bit_pointer != NULL)
-		{
-			weight_pointer = percep->weight_reg->msw;
-		}
 	}
 	//printf("\n");
 	
@@ -543,6 +558,14 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 */
 char *Decision( int threshold, int sum, Perceptron *percep ){
 	//printf("Decision\n");
+	//int stagnant;
+	//int doneskies;
+	if(percep->percep_data->doneskies == 0){
+		percep->percep_data->stagnant -= 1;
+		
+		if(percep->percep_data->stagnant == 0)
+			percep->percep_data->doneskies == 1;
+	}
 	char *decision = (char *)malloc(sizeof(char));
 	
 	//First we check if the sum we got from our Sum_Weight function is less than
@@ -552,9 +575,9 @@ char *Decision( int threshold, int sum, Perceptron *percep ){
 	
 	else
 		*decision = 2;
-	#if DEBUG
+	/*#if DEBUG
 	printf("In Decision. Sum is %d, threshold is %d, decision is %d\n", sum, threshold, *decision);	
-	#endif
+	#endif*/
 
 	//Then we'll return the decision:
 	return decision;
@@ -576,23 +599,41 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 		//A 0 means the Perceptron predicted incorrectly.
 	
 	//If the Perceptron predicted correctly, then we need not train.
-	#if DEBUG
+	/*#if DEBUG
 	printf("Decision: %d\n", decision);
 	printf("Actual: %d\n", actual);
-	#endif
+	#endif*/
+	Perceptron *percep_ptr = pList->msp;
+	int count = 0;
+	while(percep_ptr != NULL){
+		if(percep_ptr->percep_data->doneskies == 1)
+			count++;
+			
+		percep_ptr = percep_ptr->next_percep;
+	}
+	
+	if(count == pList->reg_size){
+		percep_ptr = pList->msp;
+		while(percep_ptr != NULL){
+			percep_ptr->percep_data->stagnant = 64;
+			percep_ptr->percep_data->doneskies = 0;
+			
+			percep_ptr = percep_ptr->next_percep;
+		}
+	}
 	if(decision){
-		#if DEBUG
+		/*#if DEBUG
 		printf("CORRECT.\n");	
-		#endif
+		#endif*/
 		percep->percep_data->hit_count++;
 		return;
 	}
 		
 	//If the Perceptron did not predict correctly, it must train.
 	else{
-		#if DEBUG
+		/*#if DEBUG
 		printf("INCORRECT. TRAINING.\n");	
-		#endif
+		#endif*/
 
 		//We'll increment the perceptron's train counter by +1.
 		percep->percep_data->train_count += 1;
@@ -783,27 +824,28 @@ void Set_Files( char *in_file, char *out_file, Perceptron *percep ){
 		Perceptron *percep
 	);
 */
-void Write_Output( Perceptron *percep ){
+void Write_Output( Perceptron *percep,
+	int loc ){
 	//First we'll open the file we need.
-	FILE *outFile = NULL;
+	//FILE *outFile = NULL;
 	
-	outFile = fopen( percep->percep_data->out_file, "a");
-	if(outFile == NULL){
+	FILE *outFile = fopen( "/home/imrak/Desktop/result.txt", "a");
+	/*if(outFile == NULL){
 		fclose(outFile);
 		
 		printf("ERROR: FILE ERROR. CHECK OUTPUT FILE NAME AND PATH.\n");
 		printf("\tEXITING PROGRAM UNDER exit(EXIT_FAILURE) CONDITIONS.\n\n");
 		
 		exit(EXIT_FAILURE);	
-	}
+	}*/
 	
 	//Print the information:
-	fprintf(outFile, "Hit Count\t|\t%.0f\n", percep->percep_data->hit_count);
-	fprintf(outFile, "Miss Count\t|\t%.0f\n", percep->percep_data->miss_count);
-	fprintf(outFile, "Trained\t|\t%d\n", percep->percep_data->train_count);
-	fprintf(outFile, "Accuracy\t|\t%.6f\n", percep->percep_data->hit_count / (percep->percep_data->hit_count + percep->percep_data->miss_count));
-	fprintf(outFile, "--------------------\n\n");
-	
+	//fprintf(outFile, "Hit Count\t|\t%.0f\n", percep->percep_data->hit_count);
+	//fprintf(outFile, "Miss Count\t|\t%.0f\n", percep->percep_data->miss_count);
+	//fprintf(outFile, "Trained\t|\t%d\n", percep->percep_data->train_count);
+	//fprintf(outFile, "Accuracy\t|\t%.6f\n", percep->percep_data->hit_count / (percep->percep_data->hit_count + percep->percep_data->miss_count));
+	//fprintf(outFile, "--------------------\n\n");
+	//fprintf(outFile, "%d\t%d\n", loc, percep->percep_data->chosen);
 	
 	//Close the File:
 	fclose(outFile);
@@ -1105,9 +1147,9 @@ struct Perceptron *Hash_Percep( int address, Percep_List *list ){
 	int count = 0;
 	
 	Perceptron *percep_pointer = list->msp;
-	#if DEBUG
+	/*#if DEBUG
 	printf("In Hash_Percep. Hashing to perceptron %d\n", address);
-	#endif
+	#endif*/
 
 	while(percep_pointer != NULL && count != address){
 		percep_pointer = percep_pointer->next_percep;
@@ -1133,56 +1175,262 @@ double Sum_Train( Percep_List *pList ){
 	return sum;
 }
 
+//---------------------------------------------------------------------//
+struct Address *Address_Init(){
+	struct Address *address = NULL;
+	
+	address = (Address*)malloc(sizeof(Address));
+	
+	address->branch_address = 0;
+	
+	address->next_address = NULL;
+	address->prev_address = NULL;
+	
+	address->linked_percep = NULL;
+	
+	address->tabled = 0;
+	
+	return address;
+}
+
+//-----------------------------------------------------------------------------//
+//
+//	                        
+//----------------------------------------------------------------------------//
+/*
+
+*/
+struct Address_Group *Address_Group_Init(int add_per_grp){
+	struct Address_Group *add_group = NULL;
+	Address *new_address;
+	
+	add_group = (Address_Group*)malloc(sizeof(Address_Group));
+	
+	add_group->group_top = NULL;
+	add_group->group_bot = NULL;
+	
+	add_group->count = 0;
+	
+	while(add_group->count != add_per_grp){
+		new_address = Address_Init();
+		
+		Add_Address_to_Group( add_group, new_address );
+	}
+	
+	add_group->next_group = NULL;
+	add_group->prev_group = NULL;
+	
+	return add_group;
+}
+
+//-----------------------------------------------------------------------------//
+//
+//	                        
+//----------------------------------------------------------------------------//
+/*
+	Address_Table_Init()
+*/
+struct Address_Table *Address_Table_Init(){
+	struct Address_Table *new_table = NULL;
+	Address_Group *new_group;
+	
+	new_table = (Address_Table*)malloc(sizeof(Address_Table));
+	
+	new_table->group_top = NULL;
+	new_table->group_bottom = NULL;
+	new_table->group_size = 8;
+	new_table->table_size = 2048;
+	
+	int address_per_group = new_table->table_size / new_table->group_size;
+	
+	int count = 0;
+	
+	while(count != new_table->group_size){
+		new_group = Address_Group_Init(address_per_group);
+		
+		Add_Group_to_Table( new_table, new_group );
+		
+		count++;
+	}
+	
+	return new_table;
+}
+
+//-----------------------------------------------------------------------------//
+//
+//	                        
+//----------------------------------------------------------------------------//
+/*
+	Add_Group_to_Table( Address_Table *table, Address_Group *group )
+*/
+void Add_Group_to_Table( Address_Table *table, Address_Group *group ){
+	if(table->group_top == NULL	&& table->group_bottom == NULL){
+		table->group_top = group;
+		table->group_bottom = group;
+		group->prev_group = NULL;
+		group->next_group = NULL;
+	}
+	
+	else{
+		table->group_top->prev_group = group;
+		group->next_group = table->group_top;
+		
+		table->group_top = group;
+	}
+	
+	return;
+}
+
+//-----------------------------------------------------------------------------//
+//
+//	                        
+//----------------------------------------------------------------------------//
+/*
+	Add_Address_to_Group ( Address_Group *group, Address *location )
+*/
+void Add_Address_to_Group( Address_Group *group, Address *location ){
+	if(group->group_top == NULL && group->group_bot == NULL){
+		group->group_top = location;
+		group->group_bot = location;
+		location->next_address = NULL;
+		location->prev_address = NULL;
+		group->count += 1;
+	}
+	else{
+		group->group_top->prev_address = location;
+		location->next_address = group->group_top;
+		location->prev_address = NULL;
+		group->group_top = location;
+		
+		group->count += 1;
+	}
+	
+	return;
+}
+
 //-----------------------------------------------------------------------------//
 //
 //
 //----------------------------------------------------------------------------//
 /*
-	Update_Shift_Reg(
-		Percep_List *pList,
-		int new_shift_reg_size
-	)
 */
-void Update_Shift_Reg( Percep_List *pList, int new_shift_reg_size ){
-		//First we set an old_size variable to the current pList's register size.
-	int old_size = pList->reg_size;
+
+struct Percep_Table *Percep_Table_Init(
+	int depth, 
+	int size, 
+	signed char max_weight, 
+	signed char min_weight, 
+	signed char threshold, 
+	int links
+	){
+	//printf("Table Init Begin");
+	struct Percep_Table *pTable = NULL;
 	
-		//Then we check to see if the new size is larger or smaller than the old size.
-	if(old_size < new_shift_reg_size){
-			//In the event that the old size is smaller than the new size,
-			//Then we must add bits to the shift register.
-		Bit *new_bit = NULL;
+	pTable = (Percep_Table*)malloc(sizeof(Percep_Table));
+	
+	pTable->addTable = Address_Table_Init();
+	
+	pTable->perList = Per_List_init( depth, size, max_weight, min_weight, threshold, links );
+	
+	//printf("Table Init End");
+	return pTable;
+}
+//-----------------------------------------------------------------------------//
+//
+//
+//----------------------------------------------------------------------------//
+/*
+	Add Address to Table (Percep Table + address to be added)
+*/
+struct Address *Add_Address_to_Table( Percep_Table *table, Address *location){
+
+	Perceptron *percep;
+	
+	//First Step:
+		//Firgure out which group the Address Belongs To:
+	int group = location->branch_address % table->addTable->group_size;
+	
+	//Step Two:
+		//Get that table group:
+	Address_Group *selected_group = table->addTable->group_top;
+	int group_number = 0;
+	
+	while(group_number != group && selected_group != NULL){
+		selected_group = selected_group->next_group;
 		
-			//We'll update the Perceptron List to the new register size.
-		pList->reg_size = new_shift_reg_size;
-		
-			//Then we'll loop until the old size now matches the new size.
-		while(old_size != new_shift_reg_size){
-				//While we loop, we'll generate new bits and set them to 0.
-			new_bit = (Bit*)malloc(sizeof(Bit));
-			new_bit->bit_value = 0;
-			
-				//Then attach them to the shift register.
-			Shift_Add_Bit(pList->shift_reg, new_bit);
-			
-			old_size++;
-		}
+		group_number += 1;
 	}
 	
+	//Step Three:
+		//Search that group and ensure that the address doesn't already exist there.
+	Address *current_address = selected_group->group_top;
+	
+	while(current_address != NULL){
+		if(current_address->branch_address == location->branch_address){
+			//If the address is already in the table, then break off.
+			return current_address;
+		}
+		
+		else if(current_address->branch_address == 0){
+			current_address->branch_address = location->branch_address;
+			location->tabled = 1;
+			break;	
+		}
+		
+		current_address = current_address->next_address;
+	}
+	
+	//Now comes the tricky parts:
+		//If the location was tabled in the above while loop. We can connect it with a Perceptron.
+		//If it wasn't then we have to find a perceptron that is least used, 
+		//Find the address (in the group) that is using that Perceptron, and then kick that address out.
+	
+	//First we'll do the case where the location was found
+	if(location->tabled == 1){
+		//Now we must loop through and find the least used perceptron:
+		percep = table->perList->msp;
+		int max = percep->percep_data->stagnant;
+		Perceptron *weak_percep = percep;
+		
+		while(percep != NULL){
+			if(percep->percep_data->stagnant == 64)
+				break;
+			else if(percep->percep_data->stagnant > max){
+				weak_percep = percep;
+				max = percep->percep_data->stagnant;
+			}
+			
+			percep = percep->next_percep;
+		}
+		
+		current_address->linked_percep = weak_percep;
+		
+		return current_address;
+	}
+	
+	//Now we'll do the situation where we need to replace something:
+		//To do this we search the group our location belongs to.
+		//Then we search through those perceptrons from the least used perceptron.
+		//Then we'll connect our location to the unearthed location, and connect the unused perceptorn
+		//to that location.
+		//Then we'll return the location.
 	else{
-			//In the event that the new size is smaller than the old size, we must now
-				//delete Bits from our Shift Register.
+		current_address = selected_group->group_top;
+		int max = current_address->linked_percep->percep_data->stagnant;
+		Address *weakest = current_address;
+		while(current_address != NULL){
+			if(current_address->linked_percep->percep_data->stagnant > max){
+				max = current_address->linked_percep->percep_data->stagnant;
+				weakest = current_address;
+			}
 			
-			//First we update the Perceptron List with the new register size.
-				//Then we loop until we've deleted enough Bits from the shift register.
-		pList->reg_size = new_shift_reg_size;
-		while(old_size != new_shift_reg_size){
-			Shift_Delete_Bit( pList->shift_reg );
-			
-			old_size--;
+			current_address = current_address->next_address;
 		}
+		
+		//Now that we have the weakest address' location. We must add the location to where this address is.
+			//So, like always, we must pay attention to this address being in the first, last, or middle location:
+		weakest->branch_address = location->branch_address;
+		
+		return weakest;
 	}
-	
-		//Lastly we ensure we maintain our Bias Weight by keeping the LSB as 1.
-	pList->shift_reg->lsb->bit_value = 1;
 }
