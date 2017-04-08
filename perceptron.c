@@ -556,14 +556,26 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 		bool actual
 	);
 */
-char *Decision( int threshold, int sum, Perceptron *percep ){
+char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList ){
 	//printf("Decision\n");
 	//int stagnant;
 	//int doneskies;
-	if(percep->percep_data->doneskies == 0){
-		percep->percep_data->stagnant -= 1;
+	//Perceptron *pPointer = pList->msp;
+	//int count = 0;
+	/*while(pPointer != NULL){
+		if(pPointer == percep)
+			break;
 		
-		if(percep->percep_data->stagnant == 0)
+		count = count + 1;
+		
+		pPointer = pPointer->next_percep;
+	}*/
+	//("%d\t%d\n",percep->percep_data->stagnant,count);
+	
+	if(percep->percep_data->stagnant > 0){
+		percep->percep_data->stagnant = percep->percep_data->stagnant - 1;
+		
+		if(percep->percep_data->stagnant <= 0)
 			percep->percep_data->doneskies == 1;
 	}
 	char *decision = (char *)malloc(sizeof(char));
@@ -824,29 +836,27 @@ void Set_Files( char *in_file, char *out_file, Perceptron *percep ){
 		Perceptron *percep
 	);
 */
-void Write_Output( Perceptron *percep,
-	int loc ){
-	//First we'll open the file we need.
-	//FILE *outFile = NULL;
-	
-	FILE *outFile = fopen( "/home/imrak/Desktop/result.txt", "a");
-	/*if(outFile == NULL){
-		fclose(outFile);
+void Write_Output( 
+	Address *address,
+	Percep_List *pList 
+	){
 		
-		printf("ERROR: FILE ERROR. CHECK OUTPUT FILE NAME AND PATH.\n");
-		printf("\tEXITING PROGRAM UNDER exit(EXIT_FAILURE) CONDITIONS.\n\n");
+	FILE *outFile = fopen( "/home/imrak/Desktop/branch_address_results.txt", "a");
+	
+	int count = 0;
+	
+	Perceptron *percep_pointer = NULL;
+	
+	percep_pointer = pList->msp;
+	
+	while(percep_pointer != address->linked_percep){
+		count = count + 1;
 		
-		exit(EXIT_FAILURE);	
-	}*/
+		percep_pointer = percep_pointer->next_percep;
+	}
 	
-	//Print the information:
-	//fprintf(outFile, "Hit Count\t|\t%.0f\n", percep->percep_data->hit_count);
-	//fprintf(outFile, "Miss Count\t|\t%.0f\n", percep->percep_data->miss_count);
-	//fprintf(outFile, "Trained\t|\t%d\n", percep->percep_data->train_count);
-	//fprintf(outFile, "Accuracy\t|\t%.6f\n", percep->percep_data->hit_count / (percep->percep_data->hit_count + percep->percep_data->miss_count));
-	//fprintf(outFile, "--------------------\n\n");
-	//fprintf(outFile, "%d\t%d\n", loc, percep->percep_data->chosen);
-	
+	fprintf(outFile,"%d\t%d\n",address->branch_address,count);
+		
 	//Close the File:
 	fclose(outFile);
 	
@@ -1368,10 +1378,12 @@ struct Address *Add_Address_to_Table( Percep_Table *table, Address *location){
 	while(current_address != NULL){
 		if(current_address->branch_address == location->branch_address){
 			//If the address is already in the table, then break off.
+			//printf("FOUND -- RETURNING!!\n");
 			return current_address;
 		}
 		
 		else if(current_address->branch_address == 0){
+			//printf("ZERO ADDRESS FOUND -- OVERRIDING\n");
 			current_address->branch_address = location->branch_address;
 			location->tabled = 1;
 			break;	
@@ -1385,7 +1397,7 @@ struct Address *Add_Address_to_Table( Percep_Table *table, Address *location){
 		//If it wasn't then we have to find a perceptron that is least used, 
 		//Find the address (in the group) that is using that Perceptron, and then kick that address out.
 	
-	//First we'll do the case where the location was found
+	//First we'll do the case where the zero location was found
 	if(location->tabled == 1){
 		//Now we must loop through and find the least used perceptron:
 		percep = table->perList->msp;
@@ -1393,9 +1405,8 @@ struct Address *Add_Address_to_Table( Percep_Table *table, Address *location){
 		Perceptron *weak_percep = percep;
 		
 		while(percep != NULL){
-			if(percep->percep_data->stagnant == 64)
-				break;
-			else if(percep->percep_data->stagnant > max){
+			//printf("Percep Stagnants: %d ",percep->percep_data->stagnant);
+			if(percep->percep_data->stagnant > max){
 				weak_percep = percep;
 				max = percep->percep_data->stagnant;
 			}
@@ -1404,6 +1415,7 @@ struct Address *Add_Address_to_Table( Percep_Table *table, Address *location){
 		}
 		
 		current_address->linked_percep = weak_percep;
+		current_address->branch_address = location->branch_address;
 		
 		return current_address;
 	}

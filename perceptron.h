@@ -432,11 +432,11 @@ int Sum_Weight(
 				Conversely, if the perceptron predicts incorrectly, we'll increase
 				the Perceptron's miss counter.
 */
-char *Decision(
-	int threshold,
+char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList);
+	/*int threshold,
 	int sum,
 	Perceptron *percep
-);
+);*/
 
 //-----------------------------------------------------------------------------//
 //
@@ -538,10 +538,10 @@ void Test_From_File(
 		-Trained	|	[ Times Trained ]
 		-Accuracy	|	[ Hit Count / (Hit + Miss Count) ]
 */
-void Write_Output(
-	Perceptron *percep,
-	int loc
-);
+void Write_Output( 
+	Address *address,
+	Percep_List *pList 
+	);
 
 
 // Method created to print out results to stdout

@@ -855,7 +855,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 				/*&pred->dirpred.perceptron->config.perceptron_list*/
 				dir_update_ptr->pdir1 = Decision(add_ptr->linked_percep->percep_data->threshold,
 							Sum_Weight(add_ptr->linked_percep, pred->dirpred.perceptron->config.perceptron_table.perList),	
-							add_ptr->linked_percep);
+							add_ptr->linked_percep, pList);
 				
 				//free(add_ptr);
 				
@@ -864,6 +864,8 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 				//printf("%d, %d, %d\n", pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold, Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list)),
 				//						*dir_update_ptr->pdir1);
 				//printf("%d %d\n\n", PERCEP_HASH(pred,baddr) % (pred->dirpred.perceptron->config.perceptron_list.size+1), baddr % pred->dirpred.perceptron->config.perceptron_list.size);
+				
+				Write_Output(add_ptr,pList);
 				
 				add_ptr = NULL;
 				free(add_ptr);
