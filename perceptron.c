@@ -557,6 +557,7 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	);
 */
 char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList ){
+	//printf("Size: %d",pList->size);
 	//printf("Decision\n");
 	//int stagnant;
 	//int doneskies;
@@ -574,9 +575,38 @@ char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList )
 	
 	if(percep->percep_data->stagnant > 0){
 		percep->percep_data->stagnant = percep->percep_data->stagnant - 1;
+		//printf("Stagnant: %d\t",percep->percep_data->stagnant);
 		
-		if(percep->percep_data->stagnant <= 0)
-			percep->percep_data->doneskies == 1;
+		if(percep->percep_data->stagnant <= 0){
+			//printf("Done\t");
+			percep->percep_data->doneskies = 1;
+			percep->percep_data->stagnant = 0;
+		}
+	}
+	
+	Perceptron *pPointer = pList->msp;
+	int count = 0;
+	while(pPointer != NULL){
+		//printf("Doneskies: %d\n", pPointer->percep_data->doneskies);
+		if(pPointer->percep_data->doneskies == 1){
+			count++;
+		}
+		
+		pPointer = pPointer->next_percep;
+	}
+	
+	//printf("%d\n", count);
+	
+	if(count == (pList->size )){
+		//printf("ReFormating");
+		pPointer = pList->msp;
+		
+		while(pPointer != NULL){
+			pPointer->percep_data->stagnant = 64;
+			pPointer->percep_data->doneskies = 0;
+			
+			pPointer = pPointer->next_percep;
+		}
 	}
 	char *decision = (char *)malloc(sizeof(char));
 	
@@ -615,24 +645,27 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 	printf("Decision: %d\n", decision);
 	printf("Actual: %d\n", actual);
 	#endif*/
-	Perceptron *percep_ptr = pList->msp;
+	/*Perceptron *percep_ptr = pList->msp;
 	int count = 0;
 	while(percep_ptr != NULL){
-		if(percep_ptr->percep_data->doneskies == 1)
+		if(percep_ptr->percep_data->doneskies == 1){
 			count++;
+		}
 			
 		percep_ptr = percep_ptr->next_percep;
 	}
+	//printf("Count: %d\n",count);
 	
-	if(count == pList->reg_size){
+	if(count == pList->size){
+		printf("Resetting List\n");
 		percep_ptr = pList->msp;
 		while(percep_ptr != NULL){
 			percep_ptr->percep_data->stagnant = 64;
 			percep_ptr->percep_data->doneskies = 0;
-			
+			printf("%d\t%d\n",percep_ptr->percep_data->stagnant, percep_ptr->percep_data->doneskies);
 			percep_ptr = percep_ptr->next_percep;
 		}
-	}
+	}*/
 	if(decision){
 		/*#if DEBUG
 		printf("CORRECT.\n");	
@@ -1248,7 +1281,7 @@ struct Address_Table *Address_Table_Init(){
 	
 	new_table->group_top = NULL;
 	new_table->group_bottom = NULL;
-	new_table->group_size = 8;
+	new_table->group_size = 1;
 	new_table->table_size = 2048;
 	
 	int address_per_group = new_table->table_size / new_table->group_size;
