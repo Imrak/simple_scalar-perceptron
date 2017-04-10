@@ -865,7 +865,7 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 				//						*dir_update_ptr->pdir1);
 				//printf("%d %d\n\n", PERCEP_HASH(pred,baddr) % (pred->dirpred.perceptron->config.perceptron_list.size+1), baddr % pred->dirpred.perceptron->config.perceptron_list.size);
 				
-				Write_Output(add_ptr,pList);
+				//Write_Output(add_ptr,pList);
 				
 				add_ptr = NULL;
 				free(add_ptr);

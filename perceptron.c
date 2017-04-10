@@ -1282,7 +1282,7 @@ struct Address_Table *Address_Table_Init(){
 	new_table->group_top = NULL;
 	new_table->group_bottom = NULL;
 	new_table->group_size = 1;
-	new_table->table_size = 2048;
+	new_table->table_size = 16384;
 	
 	int address_per_group = new_table->table_size / new_table->group_size;
 	
