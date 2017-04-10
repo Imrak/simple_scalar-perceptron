@@ -124,9 +124,9 @@ static int twolev_config[4] =
   { /* l1size */1, /* l2size */1024, /* hist */8, /* xor */FALSE};
 
 /* Perceptron Configuration (<depth> <list> <max_weight> <min_weight> <threshold>) */
-static int perceptron_nelt = 5;
-static int perceptron_config[5] =
-{ /*depth*/8, /*list*/1, /*max_weight*/ 127, /*min_weight*/ -127, /*threshold*/ 0};
+static int perceptron_nelt = 6;
+static int perceptron_config[6] =
+{ /*depth*/8, /*list*/1, /*max_weight*/ 127, /*min_weight*/ -127, /* num_groups */ 1, /* address_table_size */2048};
 
 /* combining predictor config (<meta_table_size> */
 static int comb_nelt = 1;
@@ -915,12 +915,12 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
   else if (!mystricmp(pred_type, "taken"))
     {
       /* static predictor, not taken */
-      pred = bpred_create(BPredTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      pred = bpred_create(BPredTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
   else if (!mystricmp(pred_type, "nottaken"))
     {
       /* static predictor, taken */
-      pred = bpred_create(BPredNotTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+      pred = bpred_create(BPredNotTaken, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
     }
   else if (!mystricmp(pred_type, "bimod"))
     {
@@ -944,7 +944,8 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
 			  /* list */0,
 			  /* max_weight */0,
 			  /* min_weight */0,
-			  /* threshold */0,
+			  /* num_groups */0,
+			  /* address_table_size */0,
 			  /* ret-addr stack size */ras_size);
     }
   else if (!mystricmp(pred_type, "2lev"))
@@ -968,7 +969,8 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
 			  /* list */0,
 			  /* max_weight */0,
 			  /* min_weight */0,
-			  /* threshold */0,
+			  /* num_groups */0,
+			  /* address_table_size */0,
 			  /* ret-addr stack size */ras_size);
     }
   else if(!mystricmp(pred_type, "perceptron"))
@@ -989,7 +991,8 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
 			  /* list */perceptron_config[1],
 			  /* max_weight */perceptron_config[2],
 			  /* min_weight */perceptron_config[3],
-			  /* threshold */perceptron_config[4],
+			  /* num_groups */perceptron_config[4],
+			  /* address_table_size */perceptron_config[5],
 			  /* ret-addr stack size */ras_size);
   }
   else if (!mystricmp(pred_type, "comb"))
@@ -1017,7 +1020,8 @@ sim_check_options(struct opt_odb_t *odb,        /* options database */
 			  /* list */0,
 			  /* max_weight */0,
 			  /* min_weight */0,
-			  /* threshold */0,
+			  /* num_groups */0,
+			  /* address_table_size */0,
 			  /* ret-addr stack size */ras_size);
     }
   else

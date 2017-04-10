@@ -652,7 +652,10 @@ struct Address_Group *Address_Group_Init(
 		Initializes the entire Address Table.
 			Generates all Groups and all initial addresses.
 */
-struct Address_Table *Address_Table_Init();
+struct Address_Table *Address_Table_Init(
+	unsigned int num_groups, 
+	unsigned int address_table_size
+);
 
 //-----------------------------------------------------------------------------//
 //
@@ -695,7 +698,9 @@ struct Percep_Table *Percep_Table_Init(
 	signed char max_weight, 
 	signed char min_weight, 
 	signed char threshold, 
-	int links
+	int links,
+	unsigned int num_groups, 
+	unsigned int address_table_size
 	);
 
 //-----------------------------------------------------------------------------//

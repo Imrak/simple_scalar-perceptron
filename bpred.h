@@ -228,7 +228,8 @@ struct bpred_t *bpred_create(
 	unsigned short int list,	/* Size of the number of Perceptrons in the Perceptorn list*/
 	signed char max_weight,		/* Max weight*/
 	signed char min_weight,		/* Min weight: Should equal -1 * max_weight */
-	signed char threshold,		/* threshold for Perceptron's prediction */
+	unsigned int num_groups,	/* Number of groups for distributed hash table */
+	unsigned int address_table_size, /* Size of the address table for the distributed hash table */
 	unsigned int retstack_size 	/* num entries in ret-addr stack */
 );
 

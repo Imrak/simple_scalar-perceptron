@@ -1273,7 +1273,7 @@ struct Address_Group *Address_Group_Init(int add_per_grp){
 /*
 	Address_Table_Init()
 */
-struct Address_Table *Address_Table_Init(){
+struct Address_Table *Address_Table_Init(unsigned int num_groups, unsigned int address_table_size){
 	struct Address_Table *new_table = NULL;
 	Address_Group *new_group;
 	
@@ -1281,8 +1281,10 @@ struct Address_Table *Address_Table_Init(){
 	
 	new_table->group_top = NULL;
 	new_table->group_bottom = NULL;
-	new_table->group_size = 1;
-	new_table->table_size = 16384;
+	//printf("TABLE SIZE: %d\n", num_groups);
+	//printf("NUM GROUPS: %d\n", address_table_size);
+	new_table->group_size = num_groups;
+	new_table->table_size = address_table_size;
 	
 	int address_per_group = new_table->table_size / new_table->group_size;
 	
@@ -1364,14 +1366,16 @@ struct Percep_Table *Percep_Table_Init(
 	signed char max_weight, 
 	signed char min_weight, 
 	signed char threshold, 
-	int links
+	int links,
+	unsigned int num_groups, 
+	unsigned int address_table_size
 	){
 	//printf("Table Init Begin");
 	struct Percep_Table *pTable = NULL;
 	
 	pTable = (Percep_Table*)malloc(sizeof(Percep_Table));
 	
-	pTable->addTable = Address_Table_Init();
+	pTable->addTable = Address_Table_Init(num_groups, address_table_size);
 	
 	pTable->perList = Per_List_init( depth, size, max_weight, min_weight, threshold, links );
 	

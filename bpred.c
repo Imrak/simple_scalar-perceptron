@@ -83,7 +83,8 @@ struct bpred_t *bpred_create(
 	unsigned short int list,			/* Size of the number of Perceptrons in the Perceptorn list*/
 	signed char max_weight,		/* Max weight*/
 	signed char min_weight,				/* Min weight: Should equal -1 * max_weight */
-	signed char threshold,		/* threshold for Perceptron's prediction */
+	unsigned int num_groups,	/* Number of groups for distributed hash table */
+	unsigned int address_table_size, /* Size of the address table for the distributed hash table */
 	unsigned int retstack_size 	/* num entries in ret-addr stack */
 ){
 	struct bpred_t *pred;
@@ -122,7 +123,7 @@ struct bpred_t *bpred_create(
 			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
 			
 			Percep_Table *pTable = (Percep_Table*)malloc(sizeof(Percep_Table));
-			pTable = Percep_Table_Init( depth, list, max_weight, min_weight, threshold, list );
+			pTable = Percep_Table_Init( depth, list, max_weight, min_weight, 0, list, num_groups, address_table_size );
 			
 			/*Address *add_ptr = NULL;
 			
