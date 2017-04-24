@@ -1,3 +1,7 @@
+//Header Guard: START
+#ifndef PERCEPTRON_H
+#define PERCEPTRON_H
+
 //General Includes Required:
 #include <stdio.h>
 #include <stdlib.h>
@@ -5,8 +9,14 @@
 #include <math.h>
 
 //Project Includes Required:
-#include "shift_register.h"
+#include "host.h"
+#include "misc.h"
+#include "machine.h"
+#include "stats.h"
 #include "weight_register.h"
+#include "shift_register.h"
+//#include "history_buffer.h"
+
 
 //Macros / Defines Required:
 #define DEPTH 8				//Use this to define the depth of the Shift and Weight registers. Use steps of 2: 2, 4, 8, 16, 32, etc.
@@ -20,11 +30,7 @@
 								//If the Summation of the Weights is [ greater than or equal to ] the Threshold
 								// the Perceptron will guess [ Taken := 1 ]
 #define LINKS 1				//Use this to define the depth of the Perceptron List, if applicable
-#define DEBUG 1				// Will print out debug information if one
-//Header Guard: START
-#ifndef PERCEPTRON_H
-#define PERCEPTRON_H
-
+#define PER_DEBUG 0				// Will print out debug information if one
 //-----------------------------------------------------------------------------//
 //
 //
@@ -65,7 +71,7 @@ typedef struct Percep_Data{
 	
 	int train_count;
 	
-	int depth;
+	unsigned char depth;
 	
 	signed char max_weight;
 	
@@ -73,16 +79,11 @@ typedef struct Percep_Data{
 	
 	signed char threshold;
 	
-	int links;
+	unsigned short int links;
 	
-	int train_value;
-	
-	int stagnant;
-	
-	int doneskies;
+	signed short int train_value;
 	
 }Percep_Data;
-
 
 //-----------------------------------------------------------------------------//
 //
@@ -152,87 +153,6 @@ typedef struct Percep_List{
 //
 //----------------------------------------------------------------------------//
 /*
-	Structure: Address
-		The Address is a structure that contains only an integer for the branch address.
-		
-		The Address Contains:
-			1) Next_Address : A pointer to the next address in the group.
-			2) Prev_Address : A pointer to the previous address in the group.
-			3) Branch_Address : The Branch Address
-			4) Linked_Percep : A pointer to the "Least Used" perceptron in the Perceptron List.
-			5) Tabled : An integer that says if the address has been placed in the table or not. Usefull for certain functions.
-*/
-typedef struct Address{
-	struct Address *next_address;
-	struct Address *prev_address;
-	Perceptron *linked_percep;
-	int branch_address;
-	int tabled;
-}Address;
-
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Structre Address Group:
-		The Address Group is a structure that contains a double linked list of Addresses.
-		
-		The Address Group Contains:
-			1) Group_Top : A pointer to the top of the Group's Address List.
-			2) Group_Bot : A pointer ot the bottom of the Group's Address List.
-			3) Count : An integer that maintains the count of the group to ensure it doesn't go over its' alotment.
-*/
-typedef struct Address_Group{
-	Address *group_top;
-	Address *group_bot;
-	struct Address_Group *next_group;
-	struct Address_Group *prev_group;
-	int count;
-}Address_Group;
-
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Structure: Address Table:
-		The Address Table is a structure that houses the entire Address Table design.
-		
-		The Address Table Contains:
-			1) Address_Group : A Double Linked List of Address Groups
-			2) Group_Size : The total number of Address Groups.
-			3) Table_Size : The total number of Address that can be held in the table.
-*/
-typedef struct Address_Table{
-	Address_Group *group_top;
-	Address_Group *group_bottom;
-	int group_size;
-	int table_size;
-}Address_Table;
-
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Structure: Perceptron Table
-		The Perceptron Table is a structure that houses the entire Perceptron Predictor.
-		
-		The Perceptron Table Contains:
-			1) Percep_List : A Perceptron List.
-			2) Address_Table : A housing element that contains - Table_Group and Table_Address(es).
-*/
-typedef struct Percep_Table{
-	Percep_List *perList;
-	Address_Table *addTable;
-}Percep_Table;
-
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
 	Data Init:
 		Data Init takes in a pointer to a Perceptron Data variable and 
 		initializes all of its data. 
@@ -250,11 +170,11 @@ typedef struct Percep_Table{
 		 it is not strictly necessary for the Perceptron itself.
 */
 struct Percep_Data *Data_Init(
-	int depth,
+	unsigned char depth,
 	signed char max_weight,
 	signed char min_weight,
 	signed char threshold,
-	int links
+	unsigned short int links
 );
 
 //-----------------------------------------------------------------------------//
@@ -275,11 +195,11 @@ struct Percep_Data *Data_Init(
 				value, even if you are not making a Perceptron List.
 */
 struct Perceptron *Perceptron_Init(
-	int depth, 
-	signed char max_weight, 
-	signed char min_weight, 
-	signed char threshold, 
-	int links
+	unsigned char depth,
+	signed char max_weight,
+	signed char min_weight,
+	signed char threshold,
+	unsigned short int links
 );
 
 //-----------------------------------------------------------------------------//
@@ -292,12 +212,8 @@ struct Perceptron *Perceptron_Init(
 		List. 
 */
 struct Percep_List *Per_List_init( 
-	int depth, 
-	int size, 
-	signed char max_weight, 
-	signed char min_weight, 
-	signed char threshold, 
-	int links
+	int depth,
+	int size
 );
 
 //-----------------------------------------------------------------------------//
@@ -432,11 +348,11 @@ int Sum_Weight(
 				Conversely, if the perceptron predicts incorrectly, we'll increase
 				the Perceptron's miss counter.
 */
-char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList);
-	/*int threshold,
+char *Decision(
+	int threshold,
 	int sum,
 	Perceptron *percep
-);*/
+);
 
 //-----------------------------------------------------------------------------//
 //
@@ -538,10 +454,9 @@ void Test_From_File(
 		-Trained	|	[ Times Trained ]
 		-Accuracy	|	[ Hit Count / (Hit + Miss Count) ]
 */
-void Write_Output( 
-	Address *address,
-	Percep_List *pList 
-	);
+void Write_Output(
+	Perceptron *percep
+);
 
 
 // Method created to print out results to stdout
@@ -619,97 +534,47 @@ double Sum_Train(
 	Percep_List *pList	
 );
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Address_Init()
-		initializes an Address with 0;
-*/
-struct Address *Address_Init();
-
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Address_Group_Init()
-		Initializes the Address Group.
-			A number of groups are created equal to:
-				Table Size / Number of Groups. (The last group gets the remainder)
-*/
-struct Address_Group *Address_Group_Init(
-	int add_per_group
+int get_bit(
+	md_addr_t val,
+	int index
 );
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Address_Table_Init()
-		Initializes the entire Address Table.
-			Generates all Groups and all initial addresses.
-*/
-struct Address_Table *Address_Table_Init(
-	unsigned int num_groups, 
-	unsigned int address_table_size
+int get_decimal(
+	int loc1,
+	int loc2,
+	int loc3,
+	int loc4,
+	int loc5
 );
 
-//-----------------------------------------------------------------------------//
-//
-//	                        
-//----------------------------------------------------------------------------//
-/*
-	Add_Group_to_Table( Address_Table *table, Address_Group *group )
-*/
-void Add_Group_to_Table(Address_Table *table, Address_Group *group );
+int ipoly_37_reduced(
+	md_addr_t address
+);
 
+int ipoly_37(
+	md_addr_t address
+);
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Add_Address(Address_Group *group, Address *location)
-*/
-void Add_Address_to_Group(Address_Group *group, Address *location);
+int ipoly_41(
+	md_addr_t address
+);
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Add Address to Table 
-*/
-struct Address *Add_Address_to_Table( Percep_Table *table, Address *location);
+int ipoly_47(
+	md_addr_t address
+);
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
+int ipoly_55(
+	md_addr_t address
+);
 
-*/
-struct Percep_Table *Percep_Table_Init(
-	int depth, 
-	int size, 
-	signed char max_weight, 
-	signed char min_weight, 
-	signed char threshold, 
-	int links,
-	unsigned int num_groups, 
-	unsigned int address_table_size
-	);
+int ipoly_59(
+	md_addr_t address
+);
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-*/
+int ipoly_61(
+	md_addr_t address
+);
+
 
 #endif //PERCEPTRON_H
 //Header Guard: END
-

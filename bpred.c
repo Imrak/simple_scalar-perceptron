@@ -83,8 +83,7 @@ struct bpred_t *bpred_create(
 	unsigned short int list,			/* Size of the number of Perceptrons in the Perceptorn list*/
 	signed char max_weight,		/* Max weight*/
 	signed char min_weight,				/* Min weight: Should equal -1 * max_weight */
-	unsigned int num_groups,	/* Number of groups for distributed hash table */
-	unsigned int address_table_size, /* Size of the address table for the distributed hash table */
+	signed char threshold,		/* threshold for Perceptron's prediction */
 	unsigned int retstack_size 	/* num entries in ret-addr stack */
 ){
 	struct bpred_t *pred;
@@ -93,8 +92,7 @@ struct bpred_t *bpred_create(
 		fatal("out of virtual memory");
 	
 	pred->class = class;
-	Percep_List *pList = NULL; // A pointer to the perceptron list, if used
-
+	Percep_List *pList = NULL;
 	switch (class) {
 		case BPredComb:
 			/* bimodal component */
@@ -116,33 +114,24 @@ struct bpred_t *bpred_create(
 			bpred_dir_create(class, l1size, l2size, shift_width, xor);
 			
 			break;
+		/*
+ 		* PERCEPTRON
+		* Allocating the perceptron predictor. Have to create a list of perceptrons
+		* as well as all of the perceptrons in the list. Does everything here so
+		* don't have to call bpred_dir_create
+  		*/
 		case BPredPerc_D:
 		case BPredPerc:
-			//pList = (Percep_List*)malloc(sizeof(Percep_List));
-			//pList = Per_List_init( depth, list, max_weight, min_weight, threshold, list );
+			pList = (Percep_List*)malloc(sizeof(Percep_List));
+			pList = Per_List_init( list, depth );
 			pred->dirpred.perceptron = (struct bpred_dir_t*)malloc(sizeof(struct bpred_dir_t));
-			
-			Percep_Table *pTable = (Percep_Table*)malloc(sizeof(Percep_Table));
-			pTable = Percep_Table_Init( depth, list, max_weight, min_weight, 0, list, num_groups, address_table_size );
-			
-			/*Address *add_ptr = NULL;
-			
-			add_ptr = pTable->addTable->group_top->group_top;
-			
-			while(add_ptr != NULL){
-				printf("Address: %d\n",add_ptr->branch_address);
-				
-				add_ptr = add_ptr->next_address;
-			}*/
-			
-			/*int i = 0;
+			int i = 0;
 			for(i = 0; i < list; i++) {
 				Perceptron *perceptron = NULL;
 				perceptron = Perceptron_Init(depth, max_weight, min_weight, threshold, list);
 				Percep_Add_Percep(pList, perceptron);
-			}*/
-			pred->dirpred.perceptron->config.perceptron_table = *pTable;
-			//pred->dirpred.perceptron->config.perceptron_list = *pList;			
+			}
+			pred->dirpred.perceptron->config.perceptron_list = *pList;			
 			break;
 		
 		case BPred2bit:
@@ -166,7 +155,6 @@ struct bpred_t *bpred_create(
 		case BPredPerc:
 		case BPred2bit:
 		{
-			//printf("allocate ret-addr stack");
 			int i;
 			
 			/* allocate BTB */
@@ -308,7 +296,6 @@ unsigned int xor			/* history xor address flag */
 		break;
 		case BPredPerc_D:
 		case BPredPerc:
-			//printf("BPredPerc Direction Creation");
 			break;
 		case BPredTaken:
 		case BPredNotTaken:
@@ -414,7 +401,7 @@ FILE *stream			/* output stream */
 	(double)pred->dir_hits/(double)(pred->dir_hits+pred->misses));
 	
 	if(pred->class == BPredPerc || pred->class == BPredPerc_D){
-		//Write_Output( NULL );
+		Write_Output( NULL );
 	}
 		//printf("Print Predictor Stats");
 }
@@ -458,7 +445,7 @@ struct stat_sdb_t *sdb	/* stats database */
 			panic("bogus branch predictor class");
 	}
 	
-	if(pred->class != BPredPerc && pred->class != BPredPerc_D){
+	if(/*pred->class != BPredPerc && pred->class != BPredPerc_D*/1){
 	
 		sprintf(buf, "%s.lookups", name);
 		
@@ -596,6 +583,8 @@ struct stat_sdb_t *sdb	/* stats database */
 	}
 	else{
 		//Print Statements for Perceptron:
+		//Right now I think we should have
+		//all of them. But can change if you want.
 		sprintf(buf, "%s.updates", name);
 		
 		sprintf(buf1, "%s.dir_hits + %s.misses", name, name);
@@ -643,7 +632,6 @@ struct stat_sdb_t *sdb	/* stats database */
 }
 
 void bpred_after_priming(struct bpred_t *bpred){
-	//printf("Bpred After Priming RAWRR!!!");
 	if (bpred == NULL)
 	return;
 	
@@ -667,8 +655,10 @@ void bpred_after_priming(struct bpred_t *bpred){
 /* was: ((baddr >> 16) ^ baddr) & (pred->dirpred.bimod.size-1) */
 
 /* Perceptron Hash Functionality */
+// Changed to the 2lev hash over the bimodal hash
 #define PERCEP_HASH(PRED, ADDR) \
-(((ADDR) >> 19) ^ ((ADDR) >> (MD_BR_SHIFT)) & ((PRED)->dirpred.perceptron->config.perceptron_list.size-1))
+((ADDR >> MD_BR_SHIFT) % ((PRED)->config.perceptron_list.size))
+//((((ADDR) >> 19) ^ ((ADDR) >> (MD_BR_SHIFT))) & ((PRED->config.perceptron_list.size-1)))
 
 /* predicts a branch direction */
 	/* pointer to counter */
@@ -832,44 +822,20 @@ int *stack_recover_idx					/* Non-speculative top-of-stack*/
 				dir_update_ptr->pdir1 = first_decision;
 			}*/
 		case BPredPerc:
+			/*
+ 			* PERCEPTRON
+			* If the branch is conditional. Get the direction pointer from the decision function of the perceptron.
+  			*/
 			if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
-			//printf("Perceptron Reconfiguration");
-			/*dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
-							Sum_Weight(pred->dirpred.perceptron->config.perceptron_list.msp),	
-							pred->dirpred.perceptron->config.perceptron_list.msp);*/
-				Percep_List *pList = pred->dirpred.perceptron->config.perceptron_table.perList;
-				Address *add_ptr = (Address*)malloc(sizeof(Address));
-				
-				add_ptr->branch_address = baddr >> 2;
-				
-				//printf("Address: %d ", add_ptr->branch_address);
-				
-				add_ptr = Add_Address_to_Table( &pred->dirpred.perceptron->config.perceptron_table, add_ptr);
-				
-				//printf("Address: %d\t", add_ptr->branch_address);
-				
-				//int loc = (baddr >> 2) % (pList->size - 1);//(pred->dirpred.perceptron->config.perceptron_list.size - 1);
-				
-				/*pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold*/
-				/*&pred->dirpred.perceptron->config.perceptron_list*/
-				/*&pred->dirpred.perceptron->config.perceptron_list*/
-				/*&pred->dirpred.perceptron->config.perceptron_list*/
-				dir_update_ptr->pdir1 = Decision(add_ptr->linked_percep->percep_data->threshold,
-							Sum_Weight(add_ptr->linked_percep, pred->dirpred.perceptron->config.perceptron_table.perList),	
-							add_ptr->linked_percep, pList);
-				
-				//free(add_ptr);
-				
-				//printf("%d %d\n", PERCEP_HASH(pred, baddr), baddr);
-				//printf("%d\n", Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
-				//printf("%d, %d, %d\n", pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold, Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list)),
-				//						*dir_update_ptr->pdir1);
-				//printf("%d %d\n\n", PERCEP_HASH(pred,baddr) % (pred->dirpred.perceptron->config.perceptron_list.size+1), baddr % pred->dirpred.perceptron->config.perceptron_list.size);
-				
-				//Write_Output(add_ptr,pList);
-				
-				add_ptr = NULL;
-				free(add_ptr);
+
+				//int loc = PERCEP_HASH(pred->dirpred.perceptron, baddr);
+				//int loc = ipoly_41(baddr); // using i-poly hashing function
+				int loc = ipoly_37_reduced(baddr);
+				//printf("In prediction hash: address: %d, index: %d\n", baddr, loc);
+			
+				dir_update_ptr->pdir1 = Decision(pred->dirpred.perceptron->config.perceptron_list.msp->percep_data->threshold,
+							Sum_Weight(Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list), &pred->dirpred.perceptron->config.perceptron_list),	
+							Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list));
 			}
 			break;	
 		case BPred2bit:
@@ -1013,41 +979,7 @@ int pred_taken,							/* non-zero if branch was pred taken */
 int correct,							/* was earlier addr prediction ok? */
 enum md_opcode op,						/* opcode of instruction */
 struct bpred_update_t *dir_update_ptr	/* pred state pointer */
-){
-	if((MD_OP_FLAGS(op) & (F_CTRL|F_UNCOND)) != (F_CTRL|F_UNCOND)){
-		if((dir_update_ptr->pdir1 && pred->class == BPredPerc) || (dir_update_ptr->pdir1 && pred->class == BPredPerc_D))
-		{
-			Percep_List *pList = pred->dirpred.perceptron->config.perceptron_table.perList;
-			Address *address = (Address*)malloc(sizeof(Address));
-			
-			address->branch_address = baddr >> 2;
-			
-			address = Add_Address_to_Table( &pred->dirpred.perceptron->config.perceptron_table, address);
-			
-			//printf("Address: %d\t",address->branch_address);
-			
-			//int loc = (baddr >> MD_BR_SHIFT) & (pred->dirpred.perceptron->config.perceptron_list.size - 1);	
-			//int loc = (baddr >> 2) % (pList->size - 1);
-			
-			//&pred->dirpred.perceptron->config.perceptron_list
-			//&pred->dirpred.perceptron->config.perceptron_list
-			//pred->dirpred.perceptron->config.perceptron_list.shift_reg
-			
-			Perceptron_Training((!!pred_taken == !!taken), !!taken, address->linked_percep,pList);
-			Bit *new_bit = NULL;
-			new_bit = (Bit*)malloc(sizeof(Bit));
-			new_bit->bit_value = !!taken;
-			Shift_Add_Bit(pList->shift_reg, new_bit);
-			
-			address = NULL;
-			free(address);
-			
-			/*#if DEBUG	
-			Print_Output(&pred->dirpred.perceptron->config.perceptron_list);
-			#endif*/
-		}
-		
-	}	
+){	
 	struct bpred_btb_ent_t *pbtb = NULL;
 	
 	struct bpred_btb_ent_t *lruhead = NULL, *lruitem = NULL;
@@ -1086,7 +1018,39 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 		else
 			pred->used_bimod++;
 	}
-	
+	/*
+ 	* PERCEPTRON
+	* If the branch is conditional then will go into training the perceptron.
+	* If the branch is not conditional we don't want it to impact the state of the perceptron.
+	* NOTE if(!!x == !!y) is equivalent to if( ((x > 0) && (y > 0)) || ((x == 0) && (y == 0)))
+  	*/
+	if((MD_OP_FLAGS(op) & (F_CTRL|F_COND)) == (F_CTRL|F_COND)){
+		if((pred->class == BPredPerc) || (pred->class == BPredPerc_D))
+		{
+			//int loc = PERCEP_HASH(pred->dirpred.perceptron, baddr); // using mod hashing function
+			//int loc = ipoly_41(baddr); // using i-poly hashing function
+			int loc = ipoly_37_reduced(baddr);
+			//printf("In training hash: address: %d, index: %d\n", baddr, loc);
+				
+			Perceptron_Training((!!pred_taken == !!taken),// if the direction was correct 
+					     !!taken,  // if the branch was taken
+					     Hash_Percep(loc, &pred->dirpred.perceptron->config.perceptron_list), // Getting the hashed perceptron
+					     &pred->dirpred.perceptron->config.perceptron_list // list of perceptrons to access shift reg
+					   );
+			/*
+ 			Allocating a new bit for the shift register and shifting it into the register.
+  			*/
+			Bit *new_bit = NULL;
+			new_bit = (Bit*)malloc(sizeof(Bit));
+			new_bit->bit_value = !!taken;
+			Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.shift_reg, new_bit);
+			#if PER_DEBUG	
+			Print_Output(&pred->dirpred.perceptron->config.perceptron_list);
+			#endif
+		}
+		
+	}
+
 	/* keep stats about JR's; also, but don't change any bpred state for JR's
 	* which are returns unless there's no retstack */
 	if (MD_IS_INDIR(op))
@@ -1222,33 +1186,17 @@ struct bpred_update_t *dir_update_ptr	/* pred state pointer */
 	{
 		if (taken)
 		{
-			if (*dir_update_ptr->pdir1 < 3 && *dir_update_ptr->pdir1 != 1)
+			if (*dir_update_ptr->pdir1 < 3)
 				++*dir_update_ptr->pdir1;
-			else if (*dir_update_ptr->pdir1 == 1)
-			{
-				*dir_update_ptr->pdir1 = 3;
-			}
 		}
-		else
-		{ /* not taken */
-			if (*dir_update_ptr->pdir1 > 0 && *dir_update_ptr->pdir1 != 2)
+		else {
+			
+			if(*dir_update_ptr->pdir1 > 0)
+			{
 				--*dir_update_ptr->pdir1;
-			else if(*dir_update_ptr->pdir1 == 2)
-			{
-				*dir_update_ptr->pdir1 = 0;
 			}
 		}
-	}
-	/*else if(dir_update_ptr->pdir1 && pred->class == BPredPerc)
-	{
-	
-		Perceptron_Training(correct, taken, pred->dirpred.perceptron->config.perceptron_list.msp);
-		Bit *new_bit = NULL;
-		new_bit = (Bit*)malloc(sizeof(Bit));
-		new_bit->bit_value = taken;
-		Shift_Add_Bit(pred->dirpred.perceptron->config.perceptron_list.msp->shift_reg, new_bit);		
-	
-	}*/
+	}	
 	
 	/* combining predictor also updates second predictor and meta predictor */
 	/* second direction predictor */

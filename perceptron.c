@@ -66,11 +66,8 @@
 	);
 */
 
-struct Percep_Data *Data_Init( int depth, 
-	signed char max_weight, 			
-	signed char min_weight, 
-	signed char threshold, 
-	int links ){
+struct Percep_Data *Data_Init( unsigned char depth, signed char max_weight, 
+				signed char min_weight, signed char threshold, unsigned short int links ){
 	struct Percep_Data *percep_data = NULL;
 	
 	percep_data = (Percep_Data*)malloc(sizeof(Percep_Data));
@@ -96,13 +93,9 @@ struct Percep_Data *Data_Init( int depth,
 	percep_data->links = links;
 	
 	percep_data->train_value = 1;
-	
-	percep_data->stagnant = 64;
-	
-	percep_data->doneskies = 0;
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("In Data_Init\n");	
-	#endif*/
+	#endif
 	return percep_data;
 }
 
@@ -115,11 +108,8 @@ struct Percep_Data *Data_Init( int depth,
 		Perceptron *perceptron
 	);
 */
-struct Perceptron *Perceptron_Init( int depth, 
-	signed char max_weight, 
-	signed char min_weight, 
-	signed char threshold, 
-	int links){
+struct Perceptron *Perceptron_Init( unsigned char depth, signed char max_weight, signed char min_weight, 
+									signed char threshold, unsigned short int links){
 		//We'll begin by creating a pointer to a Perceptron structure. This will be the structure we return.								
 	struct Perceptron *percep = NULL;
 	
@@ -153,9 +143,9 @@ struct Perceptron *Perceptron_Init( int depth,
 			//immediatly begin.
 	int i = 0;
 	
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("Initializing Perceptron. Weights:\n");	
-	#endif*/
+	#endif
 	
 	for(i = 0; i < depth; i++){
 		//We must first create both Bit and Weight pointers.
@@ -194,14 +184,14 @@ struct Perceptron *Perceptron_Init( int depth,
 			//This way the randomness at the beginning will be evened out.
 		if(i % 2 == 0){
 			new_weight->weight_value = -8 - (rand() % (16) + 1);
-			
+			//new_weight->weight_value = -1 * ((rand() % max_weight) + 1); // truly random, current sheme makes numbers closer to 0
 			if(new_weight->weight_value < 0)
 				new_weight->weight_value *= -1;
 		}
 		
 		else{
 			new_weight->weight_value = -8 - (rand() % (16) + 1);
-			
+			//new_weight->weight_value = (rand() % max_weight) + 1; // truly random, current sheme makes numbers closer to 0
 			if(new_weight->weight_value > 0)
 				new_weight->weight_value *= -1;
 		}
@@ -213,9 +203,9 @@ struct Perceptron *Perceptron_Init( int depth,
 		if(new_weight->weight_value > max_weight){
 			new_weight->weight_value = max_weight;
 		}
-		/*#if DEBUG
+		#if PER_DEBUG
 		printf("Weight %d is %d\n", i, new_weight->weight_value);
-		#endif*/
+		#endif
 
 		//Now that the bit and weight are set. We'll add them to their respective Registers:
 		//Shift_Add_Bit( percep->shift_reg, new_bit);
@@ -239,18 +229,10 @@ struct Perceptron *Perceptron_Init( int depth,
 		Percep_List *per_list 
 	);
 */
-struct Percep_List *Per_List_init( int depth, 
-	int size, 
-	signed char max_weight, 
-	signed char min_weight, 
-	signed char threshold, 
-	int links 
-	){
+struct Percep_List *Per_List_init( int depth, int size ){
 	//srand(time(NULL));
 
-	Perceptron *new_percep;
-
-	struct Percep_List *pList = NULL;
+	Percep_List *pList = NULL;
 	
 	pList = (Percep_List*)malloc(sizeof(Percep_List));
 	
@@ -258,7 +240,7 @@ struct Percep_List *Per_List_init( int depth,
 	
 	pList->reg_size = size;
 	
-	pList->shift_reg = Shift_Init( depth );
+	pList->shift_reg = Shift_Init( size );
 	
 	pList->lsp = NULL;
 	
@@ -267,24 +249,19 @@ struct Percep_List *Per_List_init( int depth,
 	pList->size = 0;
 	
 	int i = 0;
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("Initializing Perceptron list. Shift Register:\n");	
-	#endif*/
-	for(i = 0; i < size; i++){
-		new_percep = Perceptron_Init( depth, max_weight, min_weight, threshold, links );
-		
-		Percep_Add_Percep( pList, new_percep );
-	}
+	#endif
 
-	for( i = 0; i < depth; i ++){
+	for( i = 0; i < size; i ++){
 		Bit *new_bit = NULL;
 		
 		new_bit = (Bit*)malloc(sizeof(Bit));
 		
 		new_bit->bit_value = 0;
-		//#if DEBUG
-		//printf("Shift_Register %d is %d\n", i, new_bit->bit_value);
-		//#endif
+		#if PER_DEBUG
+		printf("Shift_Register %d is %d\n", i, new_bit->bit_value);
+		#endif
 		Shift_Add_Bit(pList->shift_reg, new_bit);
 	}
 	
@@ -306,9 +283,9 @@ struct Percep_List *Per_List_init( int depth,
 void Percep_Add_Percep( Percep_List *percep_list, Perceptron *new_percep ){
 	//First we must check that the Perceptron List isn't empty.
 		//If it is we simply attach the new_perceptron as the first in the list.
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("In Percep_Add_Percep\n");	
-	#endif*/
+	#endif
 	if( percep_list->msp == NULL && percep_list->lsp == NULL ){
 		percep_list->msp = new_percep;
 		
@@ -317,7 +294,7 @@ void Percep_Add_Percep( Percep_List *percep_list, Perceptron *new_percep ){
 
 	//Second we much check that the Perceptron List is not at maximum capacity.
 		//If it is we'll display a user warning, and continue with the program.
-	else if( percep_list->size == percep_list->reg_size ){
+	else if( percep_list->size == percep_list->depth ){
 		printf("ERROR: PERCEPTRON LIST AT MAXIMUM CAPACITY. NO NEW PERCEPTRONS WILL BE ADDED.\n");
 		printf("\tEXITING FUNCTION. CONTINUING PROGRAM.\n\n");
 		return;
@@ -503,7 +480,6 @@ void Delete_Perceptron( Percep_List *percep_list ){
 */
 int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	int sum = 0;
-	
 	//To sum the weight's of the Perceptron we must look at the Bit that corresponds to
 		//each Weight. If the Bit is a 0 then we will subtract the weight_value.
 		//If the Bit is a 1, then we will add the weight_value.
@@ -516,9 +492,9 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 	//The code is designed so that the Shift and Weight registers maintain the same size.
 		//As such we can continue a while loop until both pointers reach the ends
 		//of their respective lists.
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("In Sum_Weight\n");	
-	#endif*/
+	#endif
 
 	while(bit_pointer != NULL && weight_pointer != NULL){
 		//First, if the bit_pointer's bit_value == 0, we'll subtract the
@@ -530,9 +506,9 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 		//Otherwise, we'll add to it.
 		else
 			sum += weight_pointer->weight_value;
-		/*#if DEBUG
+		#if PER_DEBUG
 		printf("Shift_register_bit: %d, Weight: %d, Sum: %d\n", bit_pointer->bit_value, weight_pointer->weight_value, sum);
-		#endif*/
+		#endif
 
 		bit_pointer = bit_pointer->next_bit;
 		
@@ -556,58 +532,8 @@ int Sum_Weight( Perceptron *percep, Percep_List *pList ){
 		bool actual
 	);
 */
-char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList ){
-	//printf("Size: %d",pList->size);
+char *Decision( int threshold, int sum, Perceptron *percep ){
 	//printf("Decision\n");
-	//int stagnant;
-	//int doneskies;
-	//Perceptron *pPointer = pList->msp;
-	//int count = 0;
-	/*while(pPointer != NULL){
-		if(pPointer == percep)
-			break;
-		
-		count = count + 1;
-		
-		pPointer = pPointer->next_percep;
-	}*/
-	//("%d\t%d\n",percep->percep_data->stagnant,count);
-	
-	if(percep->percep_data->stagnant > 0){
-		percep->percep_data->stagnant = percep->percep_data->stagnant - 1;
-		//printf("Stagnant: %d\t",percep->percep_data->stagnant);
-		
-		if(percep->percep_data->stagnant <= 0){
-			//printf("Done\t");
-			percep->percep_data->doneskies = 1;
-			percep->percep_data->stagnant = 0;
-		}
-	}
-	
-	Perceptron *pPointer = pList->msp;
-	int count = 0;
-	while(pPointer != NULL){
-		//printf("Doneskies: %d\n", pPointer->percep_data->doneskies);
-		if(pPointer->percep_data->doneskies == 1){
-			count++;
-		}
-		
-		pPointer = pPointer->next_percep;
-	}
-	
-	//printf("%d\n", count);
-	
-	if(count == (pList->size )){
-		//printf("ReFormating");
-		pPointer = pList->msp;
-		
-		while(pPointer != NULL){
-			pPointer->percep_data->stagnant = 64;
-			pPointer->percep_data->doneskies = 0;
-			
-			pPointer = pPointer->next_percep;
-		}
-	}
 	char *decision = (char *)malloc(sizeof(char));
 	
 	//First we check if the sum we got from our Sum_Weight function is less than
@@ -617,9 +543,9 @@ char *Decision( int threshold, int sum, Perceptron *percep, Percep_List *pList )
 	
 	else
 		*decision = 2;
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("In Decision. Sum is %d, threshold is %d, decision is %d\n", sum, threshold, *decision);	
-	#endif*/
+	#endif
 
 	//Then we'll return the decision:
 	return decision;
@@ -641,44 +567,23 @@ void Perceptron_Training( char decision, char actual, Perceptron *percep, Percep
 		//A 0 means the Perceptron predicted incorrectly.
 	
 	//If the Perceptron predicted correctly, then we need not train.
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("Decision: %d\n", decision);
 	printf("Actual: %d\n", actual);
-	#endif*/
-	/*Perceptron *percep_ptr = pList->msp;
-	int count = 0;
-	while(percep_ptr != NULL){
-		if(percep_ptr->percep_data->doneskies == 1){
-			count++;
-		}
-			
-		percep_ptr = percep_ptr->next_percep;
-	}
-	//printf("Count: %d\n",count);
-	
-	if(count == pList->size){
-		printf("Resetting List\n");
-		percep_ptr = pList->msp;
-		while(percep_ptr != NULL){
-			percep_ptr->percep_data->stagnant = 64;
-			percep_ptr->percep_data->doneskies = 0;
-			printf("%d\t%d\n",percep_ptr->percep_data->stagnant, percep_ptr->percep_data->doneskies);
-			percep_ptr = percep_ptr->next_percep;
-		}
-	}*/
+	#endif
 	if(decision){
-		/*#if DEBUG
+		#if PER_DEBUG
 		printf("CORRECT.\n");	
-		#endif*/
+		#endif
 		percep->percep_data->hit_count++;
 		return;
 	}
 		
 	//If the Perceptron did not predict correctly, it must train.
 	else{
-		/*#if DEBUG
+		#if PER_DEBUG
 		printf("INCORRECT. TRAINING.\n");	
-		#endif*/
+		#endif
 
 		//We'll increment the perceptron's train counter by +1.
 		percep->percep_data->train_count += 1;
@@ -869,27 +774,28 @@ void Set_Files( char *in_file, char *out_file, Perceptron *percep ){
 		Perceptron *percep
 	);
 */
-void Write_Output( 
-	Address *address,
-	Percep_List *pList 
-	){
+void Write_Output( Perceptron *percep ){
+	//First we'll open the file we need.
+	FILE *outFile = NULL;
+	
+	outFile = fopen( percep->percep_data->out_file, "a");
+	if(outFile == NULL){
+		fclose(outFile);
 		
-	FILE *outFile = fopen( "/home/imrak/Desktop/branch_address_results.txt", "a");
-	
-	int count = 0;
-	
-	Perceptron *percep_pointer = NULL;
-	
-	percep_pointer = pList->msp;
-	
-	while(percep_pointer != address->linked_percep){
-		count = count + 1;
+		printf("ERROR: FILE ERROR. CHECK OUTPUT FILE NAME AND PATH.\n");
+		printf("\tEXITING PROGRAM UNDER exit(EXIT_FAILURE) CONDITIONS.\n\n");
 		
-		percep_pointer = percep_pointer->next_percep;
+		exit(EXIT_FAILURE);	
 	}
 	
-	fprintf(outFile,"%d\t%d\n",address->branch_address,count);
-		
+	//Print the information:
+	fprintf(outFile, "Hit Count\t|\t%.0f\n", percep->percep_data->hit_count);
+	fprintf(outFile, "Miss Count\t|\t%.0f\n", percep->percep_data->miss_count);
+	fprintf(outFile, "Trained\t|\t%d\n", percep->percep_data->train_count);
+	fprintf(outFile, "Accuracy\t|\t%.6f\n", percep->percep_data->hit_count / (percep->percep_data->hit_count + percep->percep_data->miss_count));
+	fprintf(outFile, "--------------------\n\n");
+	
+	
 	//Close the File:
 	fclose(outFile);
 	
@@ -1190,21 +1096,19 @@ struct Perceptron *Hash_Percep( int address, Percep_List *list ){
 	int count = 0;
 	
 	Perceptron *percep_pointer = list->msp;
-	/*#if DEBUG
+	#if PER_DEBUG
 	printf("In Hash_Percep. Hashing to perceptron %d\n", address);
-	#endif*/
+	#endif
 
 	while(percep_pointer != NULL && count != address){
 		percep_pointer = percep_pointer->next_percep;
 		count++;
 	}
-	
 	return percep_pointer;
 }
 
 double Sum_Train( Percep_List *pList ){
 	double sum = 0;
-	
 	Perceptron *percep = NULL;
 	
 	percep = pList->msp;
@@ -1217,269 +1121,99 @@ double Sum_Train( Percep_List *pList ){
 	
 	return sum;
 }
-
-//---------------------------------------------------------------------//
-struct Address *Address_Init(){
-	struct Address *address = NULL;
-	
-	address = (Address*)malloc(sizeof(Address));
-	
-	address->branch_address = 0;
-	
-	address->next_address = NULL;
-	address->prev_address = NULL;
-	
-	address->linked_percep = NULL;
-	
-	address->tabled = 0;
-	
-	return address;
+int get_bit(md_addr_t val, int index) {
+	return (val & ( 1 << index )) >> index;
 }
 
-//-----------------------------------------------------------------------------//
-//
-//	                        
-//----------------------------------------------------------------------------//
-/*
-
-*/
-struct Address_Group *Address_Group_Init(int add_per_grp){
-	struct Address_Group *add_group = NULL;
-	Address *new_address;
-	
-	add_group = (Address_Group*)malloc(sizeof(Address_Group));
-	
-	add_group->group_top = NULL;
-	add_group->group_bot = NULL;
-	
-	add_group->count = 0;
-	
-	while(add_group->count != add_per_grp){
-		new_address = Address_Init();
-		
-		Add_Address_to_Group( add_group, new_address );
+int get_decimal(int loc1, int loc2, int loc3, int loc4,int loc5) {
+	int sum = 0;
+	if(loc1 == 1) {
+		sum = sum + 1;
 	}
-	
-	add_group->next_group = NULL;
-	add_group->prev_group = NULL;
-	
-	return add_group;
+	if(loc2 == 1) {
+		sum = sum + 2;
+	}
+	if(loc3 == 1) {
+		sum = sum + 4;
+	}
+	if(loc4 == 1) {
+		sum = sum + 8;
+	}
+	if(loc5 == 1) {
+		sum = sum + 16;
+	}
+
+	return sum;
 }
 
-//-----------------------------------------------------------------------------//
-//
-//	                        
-//----------------------------------------------------------------------------//
-/*
-	Address_Table_Init()
-*/
-struct Address_Table *Address_Table_Init(unsigned int num_groups, unsigned int address_table_size){
-	struct Address_Table *new_table = NULL;
-	Address_Group *new_group;
-	
-	new_table = (Address_Table*)malloc(sizeof(Address_Table));
-	
-	new_table->group_top = NULL;
-	new_table->group_bottom = NULL;
-	//printf("TABLE SIZE: %d\n", num_groups);
-	//printf("NUM GROUPS: %d\n", address_table_size);
-	new_table->group_size = num_groups;
-	new_table->table_size = address_table_size;
-	
-	int address_per_group = new_table->table_size / new_table->group_size;
-	
-	int count = 0;
-	
-	while(count != new_table->group_size){
-		new_group = Address_Group_Init(address_per_group);
-		
-		Add_Group_to_Table( new_table, new_group );
-		
-		count++;
-	}
-	
-	return new_table;
+int ipoly_37_reduced(md_addr_t address) {
+	int loc1 = get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 15) ^ get_bit(address, 12) ^ get_bit(address, 7);
+	int loc2 = get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 16) ^ get_bit(address, 13) ^ get_bit(address, 8);
+	int loc3 = get_bit(address, 26) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 12) ^ get_bit(address, 9);
+	int loc4 = get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 13) ^ get_bit(address, 10);
+	int loc5 = get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 14) ^ get_bit(address, 11);
+
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
 }
 
-//-----------------------------------------------------------------------------//
-//
-//	                        
-//----------------------------------------------------------------------------//
-/*
-	Add_Group_to_Table( Address_Table *table, Address_Group *group )
-*/
-void Add_Group_to_Table( Address_Table *table, Address_Group *group ){
-	if(table->group_top == NULL	&& table->group_bottom == NULL){
-		table->group_top = group;
-		table->group_bottom = group;
-		group->prev_group = NULL;
-		group->next_group = NULL;
-	}
-	
-	else{
-		table->group_top->prev_group = group;
-		group->next_group = table->group_top;
-		
-		table->group_top = group;
-	}
-	
-	return;
+int ipoly_37(md_addr_t address){
+	int loc1 = get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 7) ^ get_bit(address, 2);
+	int loc2 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 11) ^ get_bit(address, 8) ^ get_bit(address, 3);
+	int loc3 = get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 4);
+	int loc4 = get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 5);
+	int loc5  = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 6);
+
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
 }
 
-//-----------------------------------------------------------------------------//
-//
-//	                        
-//----------------------------------------------------------------------------//
-/*
-	Add_Address_to_Group ( Address_Group *group, Address *location )
-*/
-void Add_Address_to_Group( Address_Group *group, Address *location ){
-	if(group->group_top == NULL && group->group_bot == NULL){
-		group->group_top = location;
-		group->group_bot = location;
-		location->next_address = NULL;
-		location->prev_address = NULL;
-		group->count += 1;
-	}
-	else{
-		group->group_top->prev_address = location;
-		location->next_address = group->group_top;
-		location->prev_address = NULL;
-		group->group_top = location;
-		
-		group->count += 1;
-	}
-	
-	return;
+int ipoly_41(md_addr_t address){
+	int loc1 = get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 2);
+	int loc2 = get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 3);
+	int loc3 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 4);
+	int loc4 = get_bit(address, 31) ^ get_bit(address, 28) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 5);
+	int loc5 = get_bit(address, 32) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 6);
+
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
 }
 
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-*/
-
-struct Percep_Table *Percep_Table_Init(
-	int depth, 
-	int size, 
-	signed char max_weight, 
-	signed char min_weight, 
-	signed char threshold, 
-	int links,
-	unsigned int num_groups, 
-	unsigned int address_table_size
-	){
-	//printf("Table Init Begin");
-	struct Percep_Table *pTable = NULL;
+int ipoly_47(md_addr_t address){
+	int loc1 = get_bit(address, 32) ^ get_bit(address, 29) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 14) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 2);
+	int loc2 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 18) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 3);
+	int loc3 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 20) ^ get_bit(address, 18) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 13) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 4);
+	int loc4 = get_bit(address, 31) ^ get_bit(address, 30) ^ get_bit(address, 27) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 5);
+	int loc5 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 28) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 13) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 8) ^ get_bit(address, 6);
 	
-	pTable = (Percep_Table*)malloc(sizeof(Percep_Table));
-	
-	pTable->addTable = Address_Table_Init(num_groups, address_table_size);
-	
-	pTable->perList = Per_List_init( depth, size, max_weight, min_weight, threshold, links );
-	
-	//printf("Table Init End");
-	return pTable;
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
 }
-//-----------------------------------------------------------------------------//
-//
-//
-//----------------------------------------------------------------------------//
-/*
-	Add Address to Table (Percep Table + address to be added)
-*/
-struct Address *Add_Address_to_Table( Percep_Table *table, Address *location){
 
-	Perceptron *percep;
+int ipoly_55(md_addr_t address){
+	int loc1 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 25) ^ get_bit(address, 21) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 9) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 2);
+	int loc2 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 7) ^ get_bit(address, 3);
+	int loc3 = get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 4);
+	int loc4 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 5);
+	int loc5 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 24) ^ get_bit(address, 20) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 6);
 	
-	//First Step:
-		//Firgure out which group the Address Belongs To:
-	int group = location->branch_address % table->addTable->group_size;
-	
-	//Step Two:
-		//Get that table group:
-	Address_Group *selected_group = table->addTable->group_top;
-	int group_number = 0;
-	
-	while(group_number != group && selected_group != NULL){
-		selected_group = selected_group->next_group;
-		
-		group_number += 1;
-	}
-	
-	//Step Three:
-		//Search that group and ensure that the address doesn't already exist there.
-	Address *current_address = selected_group->group_top;
-	
-	while(current_address != NULL){
-		if(current_address->branch_address == location->branch_address){
-			//If the address is already in the table, then break off.
-			//printf("FOUND -- RETURNING!!\n");
-			return current_address;
-		}
-		
-		else if(current_address->branch_address == 0){
-			//printf("ZERO ADDRESS FOUND -- OVERRIDING\n");
-			current_address->branch_address = location->branch_address;
-			location->tabled = 1;
-			break;	
-		}
-		
-		current_address = current_address->next_address;
-	}
-	
-	//Now comes the tricky parts:
-		//If the location was tabled in the above while loop. We can connect it with a Perceptron.
-		//If it wasn't then we have to find a perceptron that is least used, 
-		//Find the address (in the group) that is using that Perceptron, and then kick that address out.
-	
-	//First we'll do the case where the zero location was found
-	if(location->tabled == 1){
-		//Now we must loop through and find the least used perceptron:
-		percep = table->perList->msp;
-		int max = percep->percep_data->stagnant;
-		Perceptron *weak_percep = percep;
-		
-		while(percep != NULL){
-			//printf("Percep Stagnants: %d ",percep->percep_data->stagnant);
-			if(percep->percep_data->stagnant > max){
-				weak_percep = percep;
-				max = percep->percep_data->stagnant;
-			}
-			
-			percep = percep->next_percep;
-		}
-		
-		current_address->linked_percep = weak_percep;
-		current_address->branch_address = location->branch_address;
-		
-		return current_address;
-	}
-	
-	//Now we'll do the situation where we need to replace something:
-		//To do this we search the group our location belongs to.
-		//Then we search through those perceptrons from the least used perceptron.
-		//Then we'll connect our location to the unearthed location, and connect the unused perceptorn
-		//to that location.
-		//Then we'll return the location.
-	else{
-		current_address = selected_group->group_top;
-		int max = current_address->linked_percep->percep_data->stagnant;
-		Address *weakest = current_address;
-		while(current_address != NULL){
-			if(current_address->linked_percep->percep_data->stagnant > max){
-				max = current_address->linked_percep->percep_data->stagnant;
-				weakest = current_address;
-			}
-			
-			current_address = current_address->next_address;
-		}
-		
-		//Now that we have the weakest address' location. We must add the location to where this address is.
-			//So, like always, we must pay attention to this address being in the first, last, or middle location:
-		weakest->branch_address = location->branch_address;
-		
-		return weakest;
-	}
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
 }
+
+int ipoly_59(md_addr_t address){
+	int loc1 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 19) ^ get_bit(address, 15) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 2);
+	int loc2 = get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 3);
+	int loc3 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 12) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 8) ^ get_bit(address, 4);
+	int loc4 = get_bit(address, 32) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 5);
+	int loc5 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 30) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 18) ^ get_bit(address, 14) ^ get_bit(address, 11) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 6);
+	
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
+}
+
+int ipoly_61(md_addr_t address){
+	int loc1 = get_bit(address, 31) ^ get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 26) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 11) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 2);
+	int loc2 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 23) ^ get_bit(address, 22) ^ get_bit(address, 21) ^ get_bit(address, 19) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 12) ^ get_bit(address, 9) ^ get_bit(address, 8) ^ get_bit(address, 3);
+	int loc3 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 26) ^ get_bit(address, 24) ^ get_bit(address, 23) ^ get_bit(address, 21) ^ get_bit(address, 19) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 11) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 8) ^ get_bit(address, 7) ^ get_bit(address, 4);
+	int loc4 = get_bit(address, 32) ^ get_bit(address, 31) ^ get_bit(address, 30) ^ get_bit(address, 28) ^ get_bit(address, 27) ^ get_bit(address, 26) ^ get_bit(address, 25) ^ get_bit(address, 24) ^ get_bit(address, 21) ^ get_bit(address, 18) ^ get_bit(address, 17) ^ get_bit(address, 12) ^ get_bit(address, 10) ^ get_bit(address, 9) ^ get_bit(address, 7) ^ get_bit(address, 5);
+	int loc5 = get_bit(address, 32) ^ get_bit(address, 30) ^ get_bit(address, 29) ^ get_bit(address, 27) ^ get_bit(address, 25) ^ get_bit(address, 21) ^ get_bit(address, 20) ^ get_bit(address, 19) ^ get_bit(address, 17) ^ get_bit(address, 16) ^ get_bit(address, 15) ^ get_bit(address, 14) ^ get_bit(address, 13) ^ get_bit(address, 10) ^ get_bit(address, 7) ^ get_bit(address, 6);
+	
+	return get_decimal(loc1, loc2, loc3, loc4, loc5);
+}
+
+
